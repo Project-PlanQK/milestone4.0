@@ -1,0 +1,11 @@
+[project]
+name = "dbe-hhz-app"
+version = "1.0.0"
+description = "Demo starter using Gradio"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "gradio>=5.15.0",
+    "loguru>=0.7.3",
+    "planqk-service-sdk>=1.9.1",
+]
