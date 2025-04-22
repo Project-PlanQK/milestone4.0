@@ -17,11 +17,11 @@ def post_request(messages):
     #search_endpoint = os.getenv("SEARCH_ENDPOINT")
     #search_key = os.getenv("SEARCH_KEY")
 
-    endpoint = os.getenv("ENDPOINT_URL", "https://aifoundrydbe7986002173.openai.azure.com/")
+    endpoint = os.getenv("ENDPOINT_URL")
     deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
-    search_endpoint = os.getenv("SEARCH_ENDPOINT", "https://planqk-knowledge-base-active.search.windows.net/")
-    search_key = os.getenv("SEARCH_KEY", "yDLoSbd1ApiaF95eYdSWewGppCnJYkmXnIAhJ78zsOAzSeAdXMT8")
-    subscription_key = os.getenv("AZURE_OPENAI_API_KEY", "B2rVSsxT8z5mKYStTRDLflCpqhLCnCj5gtOdTjt3xODI0GKWvv2KJQQJ99BCAChHRaEXJ3w3AAAAACOGzKbK")
+    search_endpoint = os.getenv("SEARCH_ENDPOINT")
+    search_key = os.getenv("SEARCH_KEY")
+    subscription_key = os.getenv("AZURE_OPENAI_API_KEY")
     
     try:
         # Initialize Azure OpenAI Service client with key-based authentication
