@@ -18,7 +18,7 @@ def post_request(messages):
     #search_key = os.getenv("SEARCH_KEY")
 
     endpoint = os.getenv("ENDPOINT_URL")
-    deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
+    deployment = os.getenv("DEPLOYMENT_NAME")
     search_endpoint = os.getenv("SEARCH_ENDPOINT")
     search_key = os.getenv("SEARCH_KEY")
     subscription_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -131,10 +131,15 @@ def chatbot_interaction(user_message, history):
         error_msg = f"Error during OpenAI request: {e}"
         history.append({"role": "assistant", "content": error_msg})
         return history, ""
+    
+initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and here to assist you! How can I help you?"}]
 
 # Create a Gradio chat interface
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(type="messages")
+    gr.Markdown("<h2 style='text-align: center;'>Helping Chatbot</h2>")
+    chatbot = gr.Chatbot(value=initial_greeting, type="messages")
+    #gr.Chatbot(value=initial_greeting, label="AutoBot")
+    state = gr.State(value=initial_greeting)
     #output_box = gr.Textbox(label="Thinking output", lines=10, interactive=False)
     msg = gr.Textbox(label="Message")
     clear = gr.Button("Clear")
