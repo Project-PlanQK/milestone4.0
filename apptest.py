@@ -21,7 +21,7 @@ def post_request(messages):
     #search_key = os.getenv("SEARCH_KEY")
 
     endpoint = os.getenv("ENDPOINT_URL")
-    deployment = os.getenv("DEPLOYMENT_NAME")
+    deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
     search_endpoint = os.getenv("SEARCH_ENDPOINT")
     search_key = os.getenv("SEARCH_KEY")
     subscription_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -137,10 +137,25 @@ async def bot_simple(history):
         history.append({"role": "assistant", "content": bot_response})
     except Exception as e:
         history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
-    return history, gr.update(interactive=True)
+    return history, gr.update(interactive=True, value="") ## Clear the message box after sending
 
 #for thinking LLM
-async def bot_with_thinking(history):
+async def bot_with_thinking(user_message, history):
+    if not user_message.strip():
+        # if no message is entered
+        history.append({"role": "assistant", "content": "Please type a message first!"})
+        yield history, gr.update(value="", interactive=True)
+        return
+    history.append({"role": "user", "content": user_message})
+    #yield history, gr.update(value="", interactive=False)
+
+    thinking_base = "Thinking..."
+    for i in range(1, 4):  # three steps: ., .., ...
+        await asyncio.sleep(0.5)
+        history.append({"role": "assistant", "content": thinking_base + "." * i})
+        yield history, gr.update(interactive=False)
+        history.pop()
+
     thinking_phrases = [
         "First, I need to understand the core aspects of the query...",
         "Now, considering the broader context and implications...",
@@ -148,23 +163,24 @@ async def bot_with_thinking(history):
         "Finally, structuring the response for clarity and completeness..."
         ]
     yield history, gr.update(interactive=False)
-        # Zeige Thinking-Phrasen nacheinander
+    
+    # show thinking phrases in the chat
     for phrase in thinking_phrases:
         await asyncio.sleep(0.5)
         history.append({"role": "assistant", "content": phrase})
-        yield history, gr.update(interactive=False)  # Update the chatbot with the thinking phrase
+        yield history, gr.update(interactive=False)  # Update the chatbot with the thinking phrase 
 
-        # remove thinking messages from history to show only the final answer
+    # remove thinking messages from history to show only the final answer
     history = [msg for msg in history if not any(p in msg["content"] for p in thinking_phrases)]
 
-        #Bot-Output, get real response from OpenAI
+    #Bot-Output, get real response from OpenAI
     try:
         bot_response = post_request(history)
         history.append({"role": "assistant", "content": bot_response})
     except Exception as e:
         history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
         
-    yield history, gr.update(interactive=True)  # Update the chatbot with the final response
+    yield history, gr.update(value="",interactive=True)  # Update the chatbot with the final response ## Clear the message box after sending
     
     #if user sends  a message, append it to the history and show it in the chat
 def user(user_message, history):
@@ -174,15 +190,19 @@ def user(user_message, history):
 
 initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and here to assist you! Please select a mode first. You can choose between Business and Techy mode."}]
 
+#add custom CSS styles to the Gradio app
+with open("styles.css") as styles:
+    styles_css = styles.read()
+
 # Create a Gradio chat interface
-with gr.Blocks() as demo:
+with gr.Blocks(css=styles_css) as demo:
     gr.Markdown("<h2 style='text-align: center;'>Helping Chatbot</h2>")
     chatbot = gr.Chatbot(value=initial_greeting, type="messages")
     state = gr.State(value=initial_greeting)
 
     with gr.Row():
-        business_button = gr.Button("Business")
-        techy_button = gr.Button("Techy")
+        business_button = gr.Button("Business", elem_classes="blue-button")
+        techy_button = gr.Button("Techy", elem_classes="blue-button")
     
     selected_mode = gr.State(value="")  # which mode is active (business/techy)
 
@@ -194,14 +214,14 @@ with gr.Blocks() as demo:
                        inputs=chatbot, outputs=chatbot)
 
     with gr.Row():
-        msg = gr.Textbox(label="Message", scale=3)  # Links, größerer Platz
-
-        with gr.Column(scale=1):  # Rechts, schmaler
-            thinking_button = gr.Button("Thinking LLM")
-            clear_button = gr.Button("Clear")
+        with gr.Column(scale=6):
+            msg = gr.Textbox(label="Message", scale=3)  # left side, larger space
+        with gr.Column(scale=2):  # right side, smaller space
+            thinking_button = gr.Button("Thinking LLM", elem_classes="pink-button") #make button pink
+            clear_button = gr.Button("Clear", elem_classes="pink-button") #make button pink
 
     #handle the thinking button click
-    thinking_button.click(lambda x: x, chatbot, chatbot).then(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
+    thinking_button.click(bot_with_thinking, inputs=[msg, chatbot], outputs=[chatbot, msg])#.then(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
     #thinking_button.click(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
    
     #handle textbox submit

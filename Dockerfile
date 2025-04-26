@@ -8,7 +8,7 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 RUN pip install openai
 
-COPY apptest.py business_mode.py techy_mode.py ./
+COPY apptest.py business_mode.py techy_mode.py styles.css ./
 
 EXPOSE 8080
 
