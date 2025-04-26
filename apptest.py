@@ -6,8 +6,11 @@ from openai import AzureOpenAI
 import openai
 import asyncio
 import json
+from techy_mode import handle_techy
+from business_mode import handle_business
 
-print("Skript startet")
+
+print("Skript startet") #debug
 # Define a function to post a request to the Azure OpenAI model
 def post_request(messages):
     # Get environment variables for the configuration
@@ -108,11 +111,6 @@ def simulate_thinking_chat(message):
         yield answer.strip()  # Streaming-Ausgabe (stufenweise)
 
 def chatbot_interaction(user_message, history):
-    #history.append({"role": "user", "content": user_message})
-    # Die eigentliche Anfrage an den Chatbot erfolgt hier
-    # Beispiel einer Dummy-Antwort für den Chatbot
-    #response = f"Bot: I received your message: '{user_message}'. How can I assist you further?"
-    #result = completion.choices[0].message.content
     
     #history.append({"role": "user", "content": user_message})
     #history.append({"role": "assistant", "content": result})
@@ -132,61 +130,89 @@ def chatbot_interaction(user_message, history):
         history.append({"role": "assistant", "content": error_msg})
         return history, ""
     
-initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and here to assist you! How can I help you?"}]
+#for normal LLM
+async def bot_simple(history):
+    try:
+        bot_response = post_request(history)
+        history.append({"role": "assistant", "content": bot_response})
+    except Exception as e:
+        history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
+    return history, gr.update(interactive=True)
+
+#for thinking LLM
+async def bot_with_thinking(history):
+    thinking_phrases = [
+        "First, I need to understand the core aspects of the query...",
+        "Now, considering the broader context and implications...",
+        "Analyzing potential approaches to formulate a comprehensive answer...",
+        "Finally, structuring the response for clarity and completeness..."
+        ]
+    yield history, gr.update(interactive=False)
+        # Zeige Thinking-Phrasen nacheinander
+    for phrase in thinking_phrases:
+        await asyncio.sleep(0.5)
+        history.append({"role": "assistant", "content": phrase})
+        yield history, gr.update(interactive=False)  # Update the chatbot with the thinking phrase
+
+        # remove thinking messages from history to show only the final answer
+    history = [msg for msg in history if not any(p in msg["content"] for p in thinking_phrases)]
+
+        #Bot-Output, get real response from OpenAI
+    try:
+        bot_response = post_request(history)
+        history.append({"role": "assistant", "content": bot_response})
+    except Exception as e:
+        history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
+        
+    yield history, gr.update(interactive=True)  # Update the chatbot with the final response
+    
+    #if user sends  a message, append it to the history and show it in the chat
+def user(user_message, history):
+    history.append({"role": "user", "content": user_message})
+    return "", history
+    #return "", history + [{"role": "user", "content": user_message}]
+
+initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and here to assist you! Please select a mode first. You can choose between Business and Techy mode."}]
 
 # Create a Gradio chat interface
 with gr.Blocks() as demo:
     gr.Markdown("<h2 style='text-align: center;'>Helping Chatbot</h2>")
     chatbot = gr.Chatbot(value=initial_greeting, type="messages")
-    #gr.Chatbot(value=initial_greeting, label="AutoBot")
     state = gr.State(value=initial_greeting)
-    #output_box = gr.Textbox(label="Thinking output", lines=10, interactive=False)
-    msg = gr.Textbox(label="Message")
-    clear = gr.Button("Clear")
+
+    with gr.Row():
+        business_button = gr.Button("Business")
+        techy_button = gr.Button("Techy")
     
-    # Button, der die 'simulate_thinking_chat' Funktion auslöst
-    #button = gr.Button("Thinking LLM")
-    #button.click(fn=simulate_thinking_chat, inputs=msg, outputs=output_box)
+    selected_mode = gr.State(value="")  # which mode is active (business/techy)
 
-    def user(user_message, history):
-        return "", history + [{"role": "user", "content": user_message}]
+    # Handle mode button clicks to set the mode
+    business_button.click(fn=lambda history: history + [{"role": "assistant", "content": "Business Mode Activated."}],
+                          inputs=chatbot, outputs=chatbot)
+    
+    techy_button.click(fn=lambda history: history + [{"role": "assistant", "content": "Tech Mode Activated."}],
+                       inputs=chatbot, outputs=chatbot)
 
-    #def bot(history):
-        #bot_message = post_request(history)
-        #history.append({"role": "assistant", "content": bot_message})
-        #return history
+    with gr.Row():
+        msg = gr.Textbox(label="Message", scale=3)  # Links, größerer Platz
 
-    async def bot_with_thinking(history):
-        thinking_phrases = [
-            "First, I need to understand the core aspects of the query...",
-            "Now, considering the broader context and implications...",
-            "Analyzing potential approaches to formulate a comprehensive answer...",
-            "Finally, structuring the response for clarity and completeness..."
-        ]
+        with gr.Column(scale=1):  # Rechts, schmaler
+            thinking_button = gr.Button("Thinking LLM")
+            clear_button = gr.Button("Clear")
 
-        # Zeige Thinking-Phrasen nacheinander
-        for phrase in thinking_phrases:
-            await asyncio.sleep(0.5)
-            history.append({"role": "assistant", "content": phrase})
-            yield history
-
-        # Entferne Thinking-Nachrichten, um nur die finale Antwort zu zeigen (optional)
-        history = [msg for msg in history if not any(p in msg["content"] for p in thinking_phrases)]
-
-        # Danach kommt der echte Bot-Output
-        try:
-            bot_response = post_request(history)
-            history.append({"role": "assistant", "content": bot_response})
-        except Exception as e:
-            history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
-        
-        yield history
-
-
-    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot_with_thinking, chatbot, chatbot
+    #handle the thinking button click
+    thinking_button.click(lambda x: x, chatbot, chatbot).then(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
+    #thinking_button.click(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
+   
+    #handle textbox submit
+        #invoke the user function and update the textbox and chat history
+        #then call the bot_with_thinking function to get the response from the bot
+    msg.submit(user, inputs=[msg, chatbot], outputs=[msg, chatbot], queue=False).then(
+        bot_simple, inputs=chatbot, outputs=[chatbot, msg]
     )
-    clear.click(lambda: None, None, chatbot, queue=False)
+
+    # clear button to clear the chat history
+    clear_button.click(lambda: None, None, chatbot, queue=False)
 
 # Launch the Gradio app
 port = int(os.environ.get("PORT", 8080))  # fallback
