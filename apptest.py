@@ -11,24 +11,19 @@ from business_mode import handle_business
 
 
 print("Skript startet") #debug
+
 # Define a function to post a request to the Azure OpenAI model
 def post_request(messages):
     # Get environment variables for the configuration
-    #endpoint = os.getenv("ENDPOINT_URL")  # Azure OpenAI endpoint
-    #subscription_key = os.getenv("AZURE_OPENAI_API_KEY")  # Azure API Key
-    #api_version = os.getenv("AZURE_API_VERSION")  # API Version
-    #search_endpoint = os.getenv("SEARCH_ENDPOINT")
-    #search_key = os.getenv("SEARCH_KEY")
-
-    endpoint = os.getenv("ENDPOINT_URL")
-    deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
-    search_endpoint = os.getenv("SEARCH_ENDPOINT")
-    search_key = os.getenv("SEARCH_KEY")
-    subscription_key = os.getenv("AZURE_OPENAI_API_KEY")
+    endpoint = os.getenv("ENDPOINT_URL") #url of the Azure OpenAI endpoint
+    #deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
+    search_endpoint = os.getenv("SEARCH_ENDPOINT") #url of the Azure Search endpoint
+    search_key = os.getenv("SEARCH_KEY") #using azure search key for the vector database (bot can search in the database)
+    subscription_key = os.getenv("AZURE_OPENAI_API_KEY") # Azure OpenAI API Key
     
     try:
         # Initialize Azure OpenAI Service client with key-based authentication
-        #from transformers_js_py import AzureOpenAI  # Import AzureOpenAI from transformers_js_py
+        # here a connection to the Azure OpenAI service is established
         client = AzureOpenAI(
             api_key=subscription_key,
             azure_endpoint=endpoint,  # Nur Domain, ohne /openai/
@@ -37,6 +32,15 @@ def post_request(messages):
         )
         
         # Prepare the chat prompt by appending the user message to the conversation
+        # change prompt based on the selected mode
+        """if messages[0]["content"] == "Business Mode Activated.":
+            messages = handle_business(messages)
+        elif messages[0]["content"] == "Tech Mode Activated.":
+            messages = handle_techy(messages)"""
+        
+
+        # Initialize the chat prompt with a system message
+        # The system message sets the context for the conversation
         chat_prompt = [
             {
                 "role": "system",
@@ -45,6 +49,7 @@ def post_request(messages):
         ]
         
         # Add user messages to the conversation
+        # Loop through the messages and append them to the chat prompt
         for message in messages:
             chat_prompt.append({
                 "role": message["role"],
@@ -53,34 +58,38 @@ def post_request(messages):
 
 
         # Generate the completion from the OpenAI model
+        # The model is specified as "gpt-4o" and the chat prompt is passed as input
+        # The completion is generated using the chat prompt and the extra_body parameters
+        # here the model is called
+        # the models response behavior is controlled by the parameters:
+
         completion = client.chat.completions.create(
             model="gpt-4o",
-            #model=os.getenv("AZURE_DEPLOYMENT_NAME"),
             messages=chat_prompt,
-            max_tokens=800,
-            temperature=0.7,
-            top_p=0.95,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=None,
-            stream=False,
-            extra_body={
-            "data_sources": [{
+            max_tokens=800, 
+            temperature=0.7, # controls the randomness of the output (0.0 - 1.0)
+            top_p=0.95, # controls the diversity of the output (0.0 - 1.0)
+            frequency_penalty=0, # controls the repetition of words (0.0 - 1.0)
+            presence_penalty=0, # controls the presence of new words (0.0 - 1.0)
+            stop=None, # stop sequence for the generation (None means no stop sequence)
+            stream=False, # whether to stream the response
+            extra_body={ # additional parameters for the Azure Search
+            "data_sources": [{  # specify data source type
                 "type": "azure_search",
                 "parameters": {
-                "filter": None,
+                "filter": None, # filter to limit the search results (e.g., "category eq 'news'")
                 "endpoint": search_endpoint,
-                "index_name": "hhz-ds-test-index",
+                "index_name": "vector-dbe-hhz-planqk-test-new",
                 "semantic_configuration": "",
                 "authentication": {
                     "type": "api_key",
                     "key": search_key
                 },
                 "query_type": "simple",
-                "in_scope": False, #setting in_scope to false means, that documents not belonging to the database will be used and searched additionally
+                "in_scope": False, #setting in_scope to false means, that documents not belonging to the database or topic will be used and searched additionally
                 #"role_information": "You are an AI assistant that helps people find information.",
-                "strictness": 1, #strictness has to be between 1 and 5, where 1 allows a greater variety in answers with more data being seen as possibly relevant
-                "top_n_documents": 5
+                "strictness": 1, # strictness of the search results (0-5). 0 means no strictness, 5 means very strict. The stricter the search, the more relevant the results are. The strictness has to be between 1 and 5, where 1 allows a greater variety in answers with more data being seen as possibly relevant
+                "top_n_documents": 5 # number of documents to retrieve from the search (1-10). The more documents are retrieved, the more relevant the results are. The top_n_documents has to be between 1 and 10, where 1 means only one document is retrieved and 10 means all documents are retrieved.
                 }
             }]
             }
@@ -95,36 +104,16 @@ def post_request(messages):
         # Handle any exceptions that occur during the request
         raise gr.Error(f"An error occurred: {str(e)}")
     
-def simulate_thinking_chat(message):
-    thoughts = [
-        "First, I need to understand the core aspects of the query...",
-        "Now, considering the broader context and implications...",
-        "Analyzing potential approaches to formulate a comprehensive answer...",
-        "Finally, structuring the response for clarity and completeness..."
-    ]
-    answer = ""
-    
-    # Denken simulieren und Fortschritt anzeigen
-    for thought in thoughts:
-        time.sleep(0.5)  # Pausen für die Simulation von "Denken"
-        answer += f"- {thought}\n"
-        yield answer.strip()  # Streaming-Ausgabe (stufenweise)
-
 def chatbot_interaction(user_message, history):
-    
-    #history.append({"role": "user", "content": user_message})
-    #history.append({"role": "assistant", "content": result})
-    
-    #return history, result
 
     try:
         result_generator = post_request(history)
         result = ""
         for partial in result_generator:
-            result += partial  # Hol dir das Ergebnis aus dem Generator (auch mehrfach möglich)
-
+            result += partial  # get the result from the generator (can be multiple times
         history.append({"role": "assistant", "content": result})
         return history, result
+    
     except Exception as e:
         error_msg = f"Error during OpenAI request: {e}"
         history.append({"role": "assistant", "content": error_msg})
@@ -188,7 +177,7 @@ def user(user_message, history):
     return "", history
     #return "", history + [{"role": "user", "content": user_message}]
 
-initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and here to assist you! Please select a mode first. You can choose between Business and Techy mode."}]
+initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and I'm here to assist you! Please select a mode first. You can choose between Business and Techy mode."}]
 
 #add custom CSS styles to the Gradio app
 with open("styles.css") as styles:
