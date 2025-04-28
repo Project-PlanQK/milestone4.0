@@ -177,6 +177,11 @@ def user(user_message, history):
     return "", history
     #return "", history + [{"role": "user", "content": user_message}]
 
+def like(evt: gr.LikeData):
+    print("User liked the response")
+    print(evt.index, evt.liked, evt.value)
+
+
 initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and I'm here to assist you! Please select a mode first. You can choose between Business and Techy mode."}]
 
 #add custom CSS styles to the Gradio app
@@ -222,6 +227,7 @@ with gr.Blocks(css=styles_css) as demo:
 
     # clear button to clear the chat history
     clear_button.click(lambda: None, None, chatbot, queue=False)
+    chatbot.like(like)
 
 # Launch the Gradio app
 port = int(os.environ.get("PORT", 8080))  # fallback
