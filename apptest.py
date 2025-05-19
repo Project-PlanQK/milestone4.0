@@ -169,7 +169,7 @@ Is there anything else I can help you with on PlanQK?
                 "parameters": {
                 "filter": None, # filter to limit the search results (e.g., "category eq 'news'")
                 "endpoint": search_endpoint,
-                "index_name": "vector-dbe-hhz-planqk-test-new",
+                "index_name": "vector-1747663013186b",
                 "semantic_configuration": "",
                 "authentication": {
                     "type": "api_key",
