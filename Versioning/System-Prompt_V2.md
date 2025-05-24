@@ -41,3 +41,15 @@ Assistant: Perfect. You can get started by:
 
 Is there anything else I can help you with on PlanQK?
 """
+------------------------Evaluierung--------------------------------------
+Q: Wie baue ich mit PlanQK meinen ersten Use Case?
+A: Um Ihren ersten Use Case mit PlanQK zu erstellen, können Sie folgende Schritte durchführen:
+
+Service-Konfiguration vorbereiten: Erstellen Sie eine planqk.json-Datei, die die Konfiguration Ihres Services enthält. Diese Datei wird automatisch vom PlanQK CLI generiert und sollte sich im Root-Ordner Ihres Projekts befinden. Sie enthält wichtige Felder wie den Namen des Services, Ressourcen (CPU, RAM, GPU), die Laufzeitumgebung (z. B. PYTHON_TEMPLATE oder DOCKER) und die Service-ID source: https://docs.planqk.de/planqk-json-reference.html.
+Implementierung starten: Nutzen Sie den PlanQK Git Server, um Ihren Code zu verwalten. Sie können ein Repository klonen, eine README-Datei hinzufügen und Änderungen über Git synchronisieren. Falls eine Dockerfile in Ihrer Implementierung vorhanden ist, können Sie direkt über die Benutzeroberfläche einen Service erstellen source: https://docs.planqk.de/implementations/getting-started.html.
+Quantum SDK verwenden: Falls Ihr Use Case Quantencomputing umfasst, können Sie das PlanQK Quantum SDK nutzen, um Quanten-Code zu entwickeln. Das SDK unterstützt Frameworks wie Qiskit und Amazon Braket, wodurch Sie Zugriff auf verschiedene Quanten-Hardware und Simulatoren haben source: https://docs.planqk.de/sdk-reference.html.
+Authentifizierung und Integration: Stellen Sie sicher, dass Sie über einen gültigen Access Token verfügen, um Zugriff auf die Plattform und die Dienste zu erhalten. Sie können diesen Token entweder über das CLI automatisch setzen oder explizit in Ihrem Code verwenden source: https://docs.planqk.de/sdk-reference.html.
+Sobald Ihr Service eingerichtet ist, können Sie ihn auf der PlanQK-Plattform veröffentlichen und orchestrieren.
+
+Gibt es spezifische Anforderungen oder weitere Details, bei denen ich helfen kann? Is there anything else I can help you with on PlanQK?
+
