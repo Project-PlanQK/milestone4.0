@@ -117,7 +117,7 @@ Is there anything else I can help you with on PlanQK?
                 "parameters": {
                 "filter": None, # filter to limit the search results (e.g., "category eq 'news'")
                 "endpoint": search_endpoint,
-                "index_name": "vector-1747684712810c",
+                "index_name": "rag-1749220504930",
                 "semantic_configuration": "",
                 "authentication": {
                     "type": "api_key",
