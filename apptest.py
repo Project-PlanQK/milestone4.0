@@ -38,7 +38,7 @@ def post_request(messages):
         elif messages[0]["content"] == "Tech Mode Activated.":
             messages = handle_techy(messages)"""
         
-
+        #Hi
         # Initialize the chat prompt with a system message
         # The system message sets the context for the conversation
         chat_prompt = [
