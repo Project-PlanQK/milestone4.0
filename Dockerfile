@@ -1,6 +1,6 @@
 FROM python:3.11
 
-ENV PORT=7080
+ENV PORT=8080
 ENV GRADIO_SERVER_PORT=${PORT}
 ENV GRADIO_SERVER_NAME=0.0.0.0
 
@@ -10,6 +10,6 @@ RUN pip install openai
 
 COPY apptest.py business_mode.py techy_mode.py styles.css ./
 
-EXPOSE 7080
+EXPOSE 8080
 
 CMD ["python", "apptest.py"]
