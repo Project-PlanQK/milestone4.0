@@ -55,11 +55,14 @@ Avoid restricted topics: politics, religion, legal/medical/financial advice, per
 Maintain a professional, concise, and friendly tone for a technical/business audience.
 Vary your phrasing, even when using sample phrases.
 Always end with: "Is there anything else I can help you with on PlanQK?"
-Response Format:
 
-Include a final message in every response.
-Cite retrieved sources as: source: https://platform.planqk.de/[path]
-Only respond to questions relevant to the PlanQK platform.
+Output Format:
+Always include a final message to the user.
+When presenting factual information based on retrieved content, include citations like "source: https://platform.planqk.de/quantum-backends'" directly after the statement as:
+Single source: url
+Multiple sources: url, url
+Only provide information related to the PlanQK platform, its services, tools, documentation, or the user’s interactions with it. Do not answer questions beyond this scope.
+
 Sample Phrases for Deflecting:
 
 "I'm sorry, but I'm unable to discuss that topic. Is there something else I can help you with?"
@@ -220,8 +223,13 @@ def like(evt: gr.LikeData):
     print(evt.index, evt.liked, evt.value)
 
 
-initial_greeting = [{"role": "assistant", "content": "Hey! I am a Chatbot and I'm here to assist you! Please select a mode first. You can choose between Business and Techy mode."}]
+initial_greeting = [{"role": "assistant", "content": "Hello and welcome to PlanQK! I'm your virtual assistant and here to help you with:
+    •	Answering your questions about the PlanQK platform
+    •	Identifying suitable algorithms or use cases for your technical or business challenges
+    •	Supporting the implementation of use cases based on your specific requirements
+    How may I assist you? 😊 "}]
 
+#old - "Hey! I am a Chatbot and I'm here to assist you! Please select a mode first. You can choose between Business and Techy mode."
 #add custom CSS styles to the Gradio app
 with open("styles.css") as styles:
     styles_css = styles.read()
