@@ -223,11 +223,7 @@ def like(evt: gr.LikeData):
     print(evt.index, evt.liked, evt.value)
 
 
-initial_greeting = [{"role": "assistant", "content": "Hello and welcome to PlanQK! I'm your virtual assistant and here to help you with:
-    •	Answering your questions about the PlanQK platform
-    •	Identifying suitable algorithms or use cases for your technical or business challenges
-    •	Supporting the implementation of use cases based on your specific requirements
-    How may I assist you? 😊 "}]
+initial_greeting = [{"role": "assistant", "content": "Hello and welcome to PlanQK! I'm your virtual assistant and here to help you with:\n    •\tAnswering your questions about the PlanQK platform\n    •\tIdentifying suitable algorithms or use cases for your technical or business challenges\n    •\tSupporting the implementation of use cases based on your specific requirements\n    How may I assist you?\n"}]
 
 #old - "Hey! I am a Chatbot and I'm here to assist you! Please select a mode first. You can choose between Business and Techy mode."
 #add custom CSS styles to the Gradio app
