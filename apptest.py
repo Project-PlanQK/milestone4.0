@@ -44,7 +44,7 @@ def post_request(messages):
         chat_prompt = [
             {
                 "role": "system",
-                "content": """[DEBUG MODE] Before answering, list ALL available fields from each retrieved document including: content, url, metadata, title, etc.  
+                "content": """
 You are a helpful virtual assistant for the PlanQK platform (https://platform.planqk.de/home). Your job is to help users complete their tasks using only the retrieved context from PlanQK resources.
 
 Guidelines:
