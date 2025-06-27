@@ -8,6 +8,20 @@ import asyncio
 import json
 from techy_mode import handle_techy
 from business_mode import handle_business
+from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+
+OpenAIInstrumentor().instrument()
+
+
+project_client = AIProjectClient(
+    credential=DefaultAzureCredential(),
+    endpoint=os.getenv("ENDPOINT-OPEN-TELEMETRY"),
+)
+
+connection_string = project_client.telemetry.get_connection_string()
 
 
 print("Skript startet") #debug
