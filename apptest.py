@@ -11,17 +11,10 @@ from business_mode import handle_business
 from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
+from azure.monitor.opentelemetry import configure_azure_monitor
 
 
 OpenAIInstrumentor().instrument()
-
-
-project_client = AIProjectClient(
-    credential=DefaultAzureCredential(),
-    endpoint=os.getenv("ENDPOINT-OPEN-TELEMETRY"),
-)
-
-connection_string = project_client.telemetry.get_connection_string()
 
 
 print("Skript startet") #debug
@@ -42,8 +35,13 @@ def post_request(messages):
             api_key=subscription_key,
             azure_endpoint=endpoint,  # Nur Domain, ohne /openai/
             #api_version=api_version,
+            credential=DefaultAzureCredential(),
+            endpoint=os.getenv("ENDPOINT-OPEN-TELEMETRY"),
             api_version="2025-01-01-preview",
         )
+            #connection string for tracing from microsoft documentation
+            connection_string = client.telemetry.get_connection_string()
+            configure_azure_monitor(connection_string=connection_string)
         
         # Prepare the chat prompt by appending the user message to the conversation
         # change prompt based on the selected mode
