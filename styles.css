@@ -1,29 +1,128 @@
-.pink-button {
-    background-color: lightblue;
-    color: black;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s;
+/* PlanQK-inspired theme for Gradio chatbot */
+
+/* Global styles */
+:root {
+    --planqk-dark-blue: #081b39;
+    --planqk-blue: #00b0f0;
+    --planqk-light-blue: #b3e5fc;
+    --planqk-accent: #00b0f0;
+    --planqk-light-gray: #f5f5f5;
+    --planqk-dark-gray: #333333;
 }
 
-.pink-button:hover {
-    background-color: rgb(14, 140, 244);
+/* Main container styling */
+.gradio-container {
+    background-color: var(--planqk-light-gray);
+    font-family: 'Roboto', 'Segoe UI', sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Chatbot header */
+h2 {
+    color: var(--planqk-dark-blue) !important;
+    font-weight: 600 !important;
+    padding: 1.5rem 0 !important;
+    border-bottom: 2px solid var(--planqk-blue);
+}
+
+/* Chatbot message container */
+.message {
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    margin: 8px 0 !important;
+    max-width: 85% !important;
+}
+
+/* User messages */
+.user-message {
+    background-color: var(--planqk-light-blue) !important;
+    color: var(--planqk-dark-gray) !important;
+    border-bottom-right-radius: 0 !important;
+    margin-left: auto !important;
+}
+
+/* Bot messages */
+.bot-message {
+    background-color: var(--planqk-dark-blue) !important;
+    color: white !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+/* Input textbox */
+.gradio-textbox input {
+    border: 2px solid var(--planqk-light-blue) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    font-size: 1rem !important;
+}
+
+.gradio-textbox input:focus {
+    border-color: var(--planqk-blue) !important;
+    box-shadow: 0 0 0 2px rgba(0, 176, 240, 0.2) !important;
+}
+
+/* Button styling */
 .blue-button {
-    background-color: gold; 
-    color: black;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    background-color: var(--planqk-dark-blue) !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s, transform 0.1s !important;
 }
 
 .blue-button:hover {
-    background-color: goldenrod;
+    background-color: var(--planqk-blue) !important;
+    transform: translateY(-1px) !important;
+}
+
+.pink-button {
+    background-color: var(--planqk-accent) !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s, transform 0.1s !important;
+}
+
+.pink-button:hover {
+    background-color: #0099d6 !important;  /* Darker shade of PlanQK blue */
+    transform: translateY(-1px) !important;
+}
+
+/* Like button styling */
+.like-button svg {
+    fill: var(--planqk-blue) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--planqk-light-gray);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--planqk-blue);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--planqk-dark-blue);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .message {
+        max-width: 90% !important;
+    }
 }

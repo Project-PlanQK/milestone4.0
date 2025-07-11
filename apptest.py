@@ -8,13 +8,18 @@ import asyncio
 import json
 from techy_mode import handle_techy
 from business_mode import handle_business
-from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry import configure_azure_monitor
+from opentelemetry import trace
 
-
+"""OpenTelemetry Configuration
+This section configures OpenTelemetry for monitoring and telemetry collection."""
+# Initialize OpenAI instrumentation for telemetry
 OpenAIInstrumentor().instrument()
+
+tracer = trace.get_tracer(__name__)
 
 
 print("Skript startet") #debug
@@ -22,7 +27,8 @@ print("Skript startet") #debug
 # Define a function to post a request to the Azure OpenAI model
 def post_request(messages):
     # Get environment variables for the configuration
-    endpoint = os.getenv("ENDPOINT_URL") #url of the Azure OpenAI endpoint
+    #endpoint = os.getenv("ENDPOINT_URL") #url of the Azure OpenAI endpoint #alt
+    #endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models"
     #deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
     search_endpoint = os.getenv("SEARCH_ENDPOINT") #url of the Azure Search endpoint
     search_key = os.getenv("SEARCH_KEY") #using azure search key for the vector database (bot can search in the database)
@@ -33,15 +39,23 @@ def post_request(messages):
         # here a connection to the Azure OpenAI service is established
         client = AzureOpenAI(
             api_key=subscription_key,
-            azure_endpoint=endpoint,  # Nur Domain, ohne /openai/
+            #azure_endpoint=endpoint,  # Nur Domain, ohne /openai/ #alt
+            azure_endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models",
             #api_version=api_version,
-            credential=DefaultAzureCredential(),
-            endpoint=os.getenv("ENDPOINT-OPEN-TELEMETRY"),
             api_version="2025-01-01-preview",
+            #credential=DefaultAzureCredential(),
+            #endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models",
         )
-            #connection string for tracing from microsoft documentation
-            connection_string = client.telemetry.get_connection_string()
+        #alt
+        #connection_string = client.telemetry.get_connection_string()
+        #configure_azure_monitor(connection_string=connection_string)
+        connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+        print(f"Application Insights Connection String available: {bool(connection_string)}")
+        if connection_string:
             configure_azure_monitor(connection_string=connection_string)
+            print("Azure Monitor configured successfully")
+        else:
+            print("WARNING: No Application Insights connection string found. Telemetry will not be sent.")
         
         # Prepare the chat prompt by appending the user message to the conversation
         # change prompt based on the selected mode
@@ -285,5 +299,5 @@ with gr.Blocks(css=styles_css) as demo:
     chatbot.like(like)
 
 # Launch the Gradio app
-port = int(os.environ.get("PORT", 8080))  # fallback
+port = int(os.environ.get("PORT", 8080))  # fallback 7860
 demo.launch(show_error=True, server_name="0.0.0.0", server_port=port)
