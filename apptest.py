@@ -27,7 +27,7 @@ print("Skript startet") #debug
 # Define a function to post a request to the Azure OpenAI model
 def post_request(messages):
     # Get environment variables for the configuration
-    #endpoint = os.getenv("ENDPOINT_URL") #url of the Azure OpenAI endpoint #alt
+    endpoint = os.getenv("ENDPOINT_URL") #url of the Azure OpenAI endpoint #alt
     #endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models"
     #deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
     search_endpoint = os.getenv("SEARCH_ENDPOINT") #url of the Azure Search endpoint
@@ -39,8 +39,8 @@ def post_request(messages):
         # here a connection to the Azure OpenAI service is established
         client = AzureOpenAI(
             api_key=subscription_key,
-            #azure_endpoint=endpoint,  # Nur Domain, ohne /openai/ #alt
-            azure_endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models",
+            azure_endpoint=endpoint,  # Nur Domain, ohne /openai/ #alt
+            #azure_endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models",
             #api_version=api_version,
             api_version="2025-01-01-preview",
             #credential=DefaultAzureCredential(),
