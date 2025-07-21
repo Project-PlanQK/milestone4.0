@@ -8,6 +8,7 @@ import asyncio
 import json
 from techy_mode import handle_techy
 from business_mode import handle_business
+# Import necessary libraries for OpenTelemetry
 from opentelemetry.instrumentation.openai import OpenAIInstrumentor
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
@@ -132,49 +133,59 @@ Is there anything else I can help you with on PlanQK?
             span.set_attribute("rag.strictness", 1)
             span.set_attribute("rag.query_type", "simple")
             span.set_attribute("rag.in_scope", False)
-        
-        # Generate the completion from the OpenAI model
-        # The model is specified as "gpt-4o" and the chat prompt is passed as input
-        # The completion is generated using the chat prompt and the extra_body parameters
-        # here the model is called
-        # the models response behavior is controlled by the parameters:
 
-        completion = client.chat.completions.create(
-            model="gpt-4o",
-            messages=chat_prompt,
-            max_tokens=800, 
-            temperature=0.7, # controls the randomness of the output (0.0 - 1.0)
-            top_p=0.95, # controls the diversity of the output (0.0 - 1.0)
-            frequency_penalty=0, # controls the repetition of words (0.0 - 1.0)
-            presence_penalty=0, # controls the presence of new words (0.0 - 1.0)
-            stop=None, # stop sequence for the generation (None means no stop sequence)
-            stream=False, # whether to stream the response
-            extra_body={ # additional parameters for the Azure Search
-            "data_sources": [{  # specify data source type
-                "type": "azure_search",
-                "parameters": {
-                "filter": None, # filter to limit the search results (e.g., "category eq 'news'")
-                "endpoint": search_endpoint,
-                "index_name": "rag-1749220504930",
-                "semantic_configuration": "",
-                "authentication": {
-                    "type": "api_key",
-                    "key": search_key
-                },
-                "query_type": "simple",
-                "in_scope": False, #setting in_scope to false means, that documents not belonging to the database or topic will be used and searched additionally
-                #"role_information": "You are an AI assistant that helps people find information.",
-                "strictness": 1, # strictness of the search results (0-5). 0 means no strictness, 5 means very strict. The stricter the search, the more relevant the results are. The strictness has to be between 1 and 5, where 1 allows a greater variety in answers with more data being seen as possibly relevant
-                "top_n_documents": 10 # number of documents to retrieve from the search (1-10). The more documents are retrieved, the more relevant the results are. The top_n_documents has to be between 1 and 10, where 1 means only one document is retrieved and 10 means all documents are retrieved.
-                }
-            }]
-            }
-        )
-        
-        # Extract and return the model's response
-        #result = completion.choices[0].message['content']
-        result = completion.choices[0].message.content
-        return result
+            # Generate the completion from the OpenAI model within a new span
+            with tracer.start_as_current_span("Model-Completion") as span:
+                completion = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=chat_prompt,
+                    max_tokens=800, 
+                    temperature=0.7, # controls the randomness of the output (0.0 - 1.0)
+                    top_p=0.95, # controls the diversity of the output (0.0 - 1.0)
+                    frequency_penalty=0, # controls the repetition of words (0.0 - 1.0)
+                    presence_penalty=0, # controls the presence of new words (0.0 - 1.0)
+                    stop=None, # stop sequence for the generation (None means no stop sequence)
+                    stream=False, # whether to stream the response
+                    extra_body={ # additional parameters for the Azure Search
+                        "data_sources": [{  # specify data source type
+                            "type": "azure_search",
+                            "parameters": {
+                                "filter": None, # filter to limit the search results (e.g., "category eq 'news'")
+                                "endpoint": search_endpoint,
+                                "index_name": "rag-1749220504930",
+                                "semantic_configuration": "",
+                                "authentication": {
+                                    "type": "api_key",
+                                    "key": search_key
+                                },
+                                "query_type": "simple",
+                                "in_scope": False, #setting in_scope to false means, that documents not belonging to the database or topic will be used and searched additionally
+                                #"role_information": "You are an AI assistant that helps people find information.",
+                                "strictness": 1, # strictness of the search results (0-5). 0 means no strictness, 5 means very strict. The stricter the search, the more relevant the results are. The strictness has to be between 1 and 5, where 1 allows a greater variety in answers with more data being seen as possibly relevant
+                                "top_n_documents": 10 # number of documents to retrieve from the search (1-10). The more documents are retrieved, the more relevant the results are. The top_n_documents has to be between 1 and 10, where 1 means only one document is retrieved and 10 means all documents are retrieved.
+                            }
+                        }]
+                    }
+                )
+
+                # Citations / Dokumente
+                citations = getattr(completion.choices[0], "citations", None)
+                span.set_attribute("rag.documents_used", bool(citations))
+                if citations:
+                    span.set_attribute("rag.num_documents", len(citations))
+                    for i, doc in enumerate(citations):
+                        span.set_attribute(f"rag.doc_{i}.url", doc.get("url", ""))
+                        span.set_attribute(f"rag.doc_{i}.title", doc.get("title", ""))
+                        span.set_attribute(f"rag.doc_{i}.chunk_index", doc.get("chunk_index", -1))
+
+                # Modell-Infos
+                span.set_attribute("model.finish_reason", completion.choices[0].finish_reason)
+                span.set_attribute("model.response_length", len(completion.choices[0].message.content))
+                span.set_attribute("model.total_tokens", completion.usage.total_tokens)
+
+                # Extract and return the model's response
+                result = completion.choices[0].message.content
+                return result
 
     except Exception as e:
         # Handle any exceptions that occur during the request
