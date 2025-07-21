@@ -125,6 +125,14 @@ Is there anything else I can help you with on PlanQK?
             })
 
 
+        with tracer.start_as_current_span("RAG-Context-Retrieval") as span:
+            # Set attributes for the span to provide additional context
+            span.set_attribute("rag.index_name", "rag-1749220504930")
+            span.set_attribute("rag.top_n_documents", 10)
+            span.set_attribute("rag.strictness", 1)
+            span.set_attribute("rag.query_type", "simple")
+            span.set_attribute("rag.in_scope", False)
+        
         # Generate the completion from the OpenAI model
         # The model is specified as "gpt-4o" and the chat prompt is passed as input
         # The completion is generated using the chat prompt and the extra_body parameters
