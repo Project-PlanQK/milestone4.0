@@ -14,6 +14,7 @@ from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry import trace
+from user_profile import UserProfile
 
 """OpenTelemetry Configuration
 This section configures OpenTelemetry for monitoring and telemetry collection."""
@@ -22,11 +23,11 @@ OpenAIInstrumentor().instrument()
 
 tracer = trace.get_tracer(__name__)
 
-
 print("Skript startet") #debug
 
 # Define a function to post a request to the Azure OpenAI model
-def post_request(messages):
+def post_request(messages, user_profile=None):
+    # Get environment variables for the configuration
     # Get environment variables for the configuration
     endpoint = os.getenv("ENDPOINT_URL") #url of the Azure OpenAI endpoint #alt
     #endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models"
@@ -34,7 +35,7 @@ def post_request(messages):
     search_endpoint = os.getenv("SEARCH_ENDPOINT") #url of the Azure Search endpoint
     search_key = os.getenv("SEARCH_KEY") #using azure search key for the vector database (bot can search in the database)
     subscription_key = os.getenv("AZURE_OPENAI_API_KEY") # Azure OpenAI API Key
-    
+        
     try:
         # Initialize Azure OpenAI Service client with key-based authentication
         # here a connection to the Azure OpenAI service is established
@@ -64,57 +65,66 @@ def post_request(messages):
             messages = handle_business(messages)
         elif messages[0]["content"] == "Tech Mode Activated.":
             messages = handle_techy(messages)"""
-        
-        #Hi
+    except Exception as e:
+        print(f"Error initializing Azure OpenAI client or configuring telemetry: {e}")
+        raise
+
+            # Only call user profile LLM if not set
+    if user_profile is None:
+        with tracer.start_as_current_span("User-Profiling") as span:
+            user_profiler = UserProfile()
+            # Only pass the latest user message
+            last_user_message = next((m["content"] for m in reversed(messages) if m["role"] == "user"), "")
+            user_profile = user_profiler.determine_user_profile(last_user_message)
+            span.set_attribute("user.profile", user_profile)
+
         # Initialize the chat prompt with a system message
         # The system message sets the context for the conversation
         chat_prompt = [
             {
                 "role": "system",
                 "content": """
-You are a helpful virtual assistant for the PlanQK platform (https://platform.planqk.de/home). Your job is to help users complete their tasks using only the retrieved context from PlanQK resources.
+                You are a helpful virtual assistant for the PlanQK platform (https://platform.planqk.de/home). Your job is to help users complete their tasks using only the retrieved context from PlanQK resources.
 
-Guidelines:
+                Guidelines:
 
-Respond strictly based on the retrieved context. Do not use prior knowledge or assumptions.
-If information is missing, ask focused follow-up questions.
-Avoid restricted topics: politics, religion, legal/medical/financial advice, personal matters, or criticism.
-Maintain a professional, concise, and friendly tone for a technical/business audience.
-Vary your phrasing, even when using sample phrases.
-Always end with: "Is there anything else I can help you with on PlanQK?"
-At the end of each response, explicitly state which persona you have identified (Identified persona: Business | Technical).
+                Respond strictly based on the retrieved context. Do not use prior knowledge or assumptions.
+                If information is missing, ask focused follow-up questions.
+                Avoid restricted topics: politics, religion, legal/medical/financial advice, personal matters, or criticism.
+                Maintain a professional, concise, and friendly tone for a technical/business audience.
+                Vary your phrasing, even when using sample phrases.
+                Always end with: "Is there anything else I can help you with on PlanQK?"
+                At the end of each response, explicitly state which persona you have identified (Identified persona: Business | Technical).
 
-Output Format:
-Always include a final message to the user.
-When presenting factual information based on retrieved content, include citations like "source: https://platform.planqk.de/quantum-backends'" directly after the statement as:
-Single source: url
-Multiple sources: url, url
-Only provide information related to the PlanQK platform, its services, tools, documentation, or the user’s interactions with it. Do not answer questions beyond this scope.
+                Output Format:
+                Always include a final message to the user.
+                When presenting factual information based on retrieved content, include citations like "source: https://platform.planqk.de/quantum-backends'" directly after the statement as:
+                Single source: url
+                Multiple sources: url, url
+                Only provide information related to the PlanQK platform, its services, tools, documentation, or the user’s interactions with it. Do not answer questions beyond this scope.
 
-Sample Phrases for Deflecting:
+                Sample Phrases for Deflecting:
 
-"I'm sorry, but I'm unable to discuss that topic. Is there something else I can help you with?"
-"That's not something I can provide information on, but I'm happy to help with questions related to PlanQK."
-Example Dialogue: User: We’re exploring AI for operational optimization. Can PlanQK support us? Assistant: Thanks for reaching out! PlanQK offers AI models and services for analytics and optimization. Could you share:
+                "I'm sorry, but I'm unable to discuss that topic. Is there something else I can help you with?"
+                "That's not something I can provide information on, but I'm happy to help with questions related to PlanQK."
+                Example Dialogue: User: We're exploring AI for operational optimization. Can PlanQK support us? Assistant: Thanks for reaching out! PlanQK offers AI models and services for analytics and optimization. Could you share:
 
-What kind of data you’re working with?
-Are you evaluating or ready to deploy?
-User: We have structured time-series data and want to explore. Assistant: Great. Check out:
+                What kind of data you're working with?
+                Are you evaluating or ready to deploy?
+                User: We have structured time-series data and want to explore. Assistant: Great. Check out:
 
-Use Case: “Predictive Optimization for Dynamic Systems” UseCase_X
-Model: “Generic AI Optimizer” AI_Opt_Model
-Would you like help setting up a workspace or connecting data?
+                Use Case: “Predictive Optimization for Dynamic Systems” UseCase_X
+                Model: “Generic AI Optimizer” AI_Opt_Model
+                Would you like help setting up a workspace or connecting data?
 
-User: Yes, please. Assistant: Here's how to start:
+                User: Yes, please. Assistant: Here's how to start:
 
-Create a workspace under “Workspaces”.
-Add the model via the “Services” tab.
-Connect data via “Data Connectors”.
-Run a test with sample data.
-Is there anything else I can help you with on PlanQK? 
-
-
-"""
+                Create a workspace under “Workspaces”.
+                Add the model via the “Services” tab.
+                Connect data via “Data Connectors”.
+                Run a test with sample data.
+                Is there anything else I can help you with on PlanQK?
+                Identified User Profile: {user_profile}"""
             },
         ]
         
@@ -126,7 +136,7 @@ Is there anything else I can help you with on PlanQK?
                 "content": message["content"]
             })
 
-
+        # Main LLM Call
         with tracer.start_as_current_span("RAG-Context-Retrieval") as span:
             # Set attributes for the span to provide additional context
             span.set_attribute("rag.index_name", "rag-1749220504930")
@@ -136,7 +146,13 @@ Is there anything else I can help you with on PlanQK?
             span.set_attribute("rag.in_scope", False)
 
             # Generate the completion from the OpenAI model within a new span
-            with tracer.start_as_current_span("Model-Completion") as span:
+        with tracer.start_as_current_span("Model-Completion") as span:
+            try:
+                client = AzureOpenAI(
+                    api_key=subscription_key,
+                    azure_endpoint=endpoint,
+                    api_version="2025-01-01-preview",
+                )
                 completion = client.chat.completions.create(
                     model="gpt-4o",
                     messages=chat_prompt,
@@ -188,14 +204,13 @@ Is there anything else I can help you with on PlanQK?
                 result = completion.choices[0].message.content
                 return result
 
-    except Exception as e:
-        # Handle any exceptions that occur during the request
-        raise gr.Error(f"An error occurred: {str(e)}")
+            except Exception as e:
+                # Handle any exceptions that occur during the request
+                raise gr.Error(f"An error occurred: {str(e)}")
     
-def chatbot_interaction(user_message, history):
-
+def chatbot_interaction(user_message, history, user_profile):
     try:
-        result_generator = post_request(history)
+        result_generator = post_request(history, user_profile)
         result = ""
         for partial in result_generator:
             result += partial  # get the result from the generator (can be multiple times
@@ -208,20 +223,20 @@ def chatbot_interaction(user_message, history):
         return history, ""
     
 #for normal LLM
-async def bot_simple(history):
+async def bot_simple(history, user_profile):
     try:
-        bot_response = post_request(history)
+        bot_response = post_request(history, user_profile)
         history.append({"role": "assistant", "content": bot_response})
     except Exception as e:
         history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
-    return history, gr.update(interactive=True, value="") ## Clear the message box after sending
+    return history, user_profile, gr.update(interactive=True, value="")
 
 #for thinking LLM
-async def bot_with_thinking(user_message, history):
+async def bot_with_thinking(user_message, history, user_profile):
     if not user_message.strip():
         # if no message is entered
         history.append({"role": "assistant", "content": "Please type a message first!"})
-        yield history, gr.update(value="", interactive=True)
+        yield history, user_profile, gr.update(value="", interactive=True)
         return
     history.append({"role": "user", "content": user_message})
     #yield history, gr.update(value="", interactive=False)
@@ -245,30 +260,56 @@ async def bot_with_thinking(user_message, history):
     for phrase in thinking_phrases:
         await asyncio.sleep(0.5)
         history.append({"role": "assistant", "content": phrase})
-        yield history, gr.update(interactive=False)  # Update the chatbot with the thinking phrase 
+        yield history, user_profile, gr.update(interactive=False)  # Update the chatbot with the thinking phrase
 
     # remove thinking messages from history to show only the final answer
     history = [msg for msg in history if not any(p in msg["content"] for p in thinking_phrases)]
 
     #Bot-Output, get real response from OpenAI
     try:
-        bot_response = post_request(history)
+        bot_response = post_request(history, user_profile)
         history.append({"role": "assistant", "content": bot_response})
     except Exception as e:
         history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
-        
-    yield history, gr.update(value="",interactive=True)  # Update the chatbot with the final response ## Clear the message box after sending
-    
+
+    yield history, user_profile, gr.update(value="", interactive=True)  # Update the chatbot with the final response ## Clear the message box after sending
+
     #if user sends  a message, append it to the history and show it in the chat
 def user(user_message, history):
     history.append({"role": "user", "content": user_message})
     return "", history
     #return "", history + [{"role": "user", "content": user_message}]
 
-def like(evt: gr.LikeData):
+"""def like(evt: gr.LikeData):
     print("User liked the response")
-    print(evt.index, evt.liked, evt.value)
+    print(evt.index, evt.liked, evt.value)"""
 
+def like(evt: gr.LikeData, history, user_profile):
+    if evt.liked:
+        # Thumbs up: thank the user
+        history.append({"role": "assistant", "content": "Thanks for your feedback!"})
+        return history, user_profile
+    else:
+        # Thumbs down: ask for a more detailed answer
+        last_user_message = next((m["content"] for m in reversed(history) if m["role"] == "user"), "")
+        # Add a special system prompt for more detail
+        system_prompt = (
+            "The user requested a more detailed answer. "
+            "Please provide a more comprehensive and in-depth response to the last user question."
+        )
+        temp_history = history.copy()
+        temp_history.append({"role": "system", "content": system_prompt})
+        try:
+            bot_response = post_request(temp_history, user_profile)
+            history.append({"role": "assistant", "content": bot_response})
+        except Exception as e:
+            history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
+        return history, user_profile
+
+def copy_last_message(history):
+    if history:
+        return history[-1]["content"]
+    return ""
 
 initial_greeting = [{"role": "assistant", "content": "Hello and welcome to PlanQK! I'm your virtual assistant and here to help you with:\n    •\tAnswering your questions about the PlanQK platform\n    •\tIdentifying suitable algorithms or use cases for your technical or business challenges\n    •\tSupporting the implementation of use cases based on your specific requirements\n    How may I assist you?\n"}]
 
@@ -281,42 +322,40 @@ with open("styles.css") as styles:
 with gr.Blocks(css=styles_css) as demo:
     gr.Markdown("<h2 style='text-align: center;'>Helping Chatbot</h2>")
     chatbot = gr.Chatbot(value=initial_greeting, type="messages")
-    state = gr.State(value=initial_greeting)
+    user_profile_state = gr.State(value=None)
 
     with gr.Row():
-        business_button = gr.Button("Business", elem_classes="blue-button")
-        techy_button = gr.Button("Techy", elem_classes="blue-button")
-    
-    selected_mode = gr.State(value="")  # which mode is active (business/techy)
+        copy_button = gr.Button("Copy Last Message")
+        copy_output = gr.Textbox(label="Copied Text", interactive=False)
 
-    # Handle mode button clicks to set the mode
-    business_button.click(fn=lambda history: history + [{"role": "assistant", "content": "Business Mode Activated."}],
-                          inputs=chatbot, outputs=chatbot)
-    
-    techy_button.click(fn=lambda history: history + [{"role": "assistant", "content": "Tech Mode Activated."}],
-                       inputs=chatbot, outputs=chatbot)
+    copy_button.click(copy_last_message, inputs=chatbot, outputs=copy_output)
 
     with gr.Row():
         with gr.Column(scale=6):
             msg = gr.Textbox(label="Message", scale=3)  # left side, larger space
         with gr.Column(scale=2):  # right side, smaller space
-            thinking_button = gr.Button("Thinking LLM", elem_classes="pink-button") #make button pink
-            clear_button = gr.Button("Clear", elem_classes="pink-button") #make button pink
+            thinking_button = gr.Button("Thinking LLM", elem_classes="blue-button") #make button blue
+            clear_button = gr.Button("Clear", elem_classes="blue-button") #make button blue
 
     #handle the thinking button click
-    thinking_button.click(bot_with_thinking, inputs=[msg, chatbot], outputs=[chatbot, msg])#.then(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
+    thinking_button.click(bot_with_thinking, inputs=[msg, chatbot, user_profile_state], outputs=[chatbot, user_profile_state, msg])#.then(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
     #thinking_button.click(bot_with_thinking, inputs=chatbot, outputs=[chatbot, msg])
    
     #handle textbox submit
         #invoke the user function and update the textbox and chat history
         #then call the bot_with_thinking function to get the response from the bot
     msg.submit(user, inputs=[msg, chatbot], outputs=[msg, chatbot], queue=False).then(
-        bot_simple, inputs=chatbot, outputs=[chatbot, msg]
+        bot_simple, inputs=[chatbot, user_profile_state], outputs=[chatbot, user_profile_state, msg]
     )
 
     # clear button to clear the chat history
-    clear_button.click(lambda: None, None, chatbot, queue=False)
-    chatbot.like(like)
+    clear_button.click(lambda: (initial_greeting, None), None, [chatbot, user_profile_state], queue=False)
+    #chatbot.like(like)
+    chatbot.like(
+    like,
+    inputs=[chatbot, user_profile_state],
+    outputs=[chatbot, user_profile_state]
+    )
 
 # Launch the Gradio app
 port = int(os.environ.get("PORT", 8080))  # fallback 7860

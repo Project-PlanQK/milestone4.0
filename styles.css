@@ -1,128 +1,173 @@
 /* PlanQK-inspired theme for Gradio chatbot */
 
-/* Global styles */
 :root {
     --planqk-dark-blue: #081b39;
     --planqk-blue: #00b0f0;
-    --planqk-light-blue: #b3e5fc;
+    --planqk-light-blue: #e6f7ff;
     --planqk-accent: #00b0f0;
-    --planqk-light-gray: #f5f5f5;
+    --planqk-light-gray: #f5f7fa;
     --planqk-dark-gray: #333333;
+    --planqk-border-radius: 14px;
+    --planqk-shadow: 0 2px 12px rgba(8, 27, 57, 0.06);
+    --planqk-font: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
 
-/* Main container styling */
+body, .gradio-container {
+    background: var(--planqk-light-gray) !important;
+    font-family: var(--planqk-font) !important;
+    color: var(--planqk-dark-blue) !important;
+    margin: 0;
+    padding: 0;
+}
+
 .gradio-container {
-    background-color: var(--planqk-light-gray);
-    font-family: 'Roboto', 'Segoe UI', sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    min-width: 400px;
+    margin: 40px auto;
+    border-radius: var(--planqk-border-radius);
+    box-shadow: var(--planqk-shadow);
+    background: #fff !important;
+    padding: 40px 32px 32px 32px;
 }
 
-/* Chatbot header */
-h2 {
+h2, .gradio-markdown h2 {
     color: var(--planqk-dark-blue) !important;
     font-weight: 600 !important;
-    padding: 1.5rem 0 !important;
-    border-bottom: 2px solid var(--planqk-blue);
+    font-size: 2rem !important;
+    margin-bottom: 24px !important;
+    text-align: center !important;
+    background: #fff !important;
+    border-bottom: none !important;
+    padding-bottom: 0;
+    letter-spacing: 0.5px;
 }
 
-/* Chatbot message container */
-.message {
-    border-radius: 8px !important;
-    padding: 12px 16px !important;
-    margin: 8px 0 !important;
-    max-width: 85% !important;
+.gradio-chatbot {
+    background: var(--planqk-light-blue) !important;
+    border-radius: var(--planqk-border-radius) !important;
+    box-shadow: var(--planqk-shadow) !important;
+    padding: 32px !important;
+    min-height: 600px !important; 
+    max-height: 700px !important; 
+    height: 600px !important;     
+    overflow-y: auto !important;
+    margin-bottom: 32px !important;
+    transition: none !important;
+    font-size: 1.25rem !important;
 }
 
-/* User messages */
-.user-message {
-    background-color: var(--planqk-light-blue) !important;
-    color: var(--planqk-dark-gray) !important;
-    border-bottom-right-radius: 0 !important;
+.message, .gr-message {
+    border-radius: 10px !important;
+    padding: 18px 28px !important;
+    margin: 18px 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    font-size: 1.18rem !important;
+    line-height: 1.7 !important;
+    box-shadow: 0 2px 8px rgba(0,176,240,0.06);
+    word-break: break-word !important;
+    white-space: normal !important;
+    border: none !important;
+    display: block !important;
+}
+
+.user-message, .gr-message.user {
+    background: #fff !important;
+    color: var(--planqk-dark-blue) !important;
+    border: 1px solid var(--planqk-blue) !important;
     margin-left: auto !important;
+    text-align: right !important;
 }
 
-/* Bot messages */
-.bot-message {
-    background-color: var(--planqk-dark-blue) !important;
-    color: white !important;
-    border-bottom-left-radius: 0 !important;
-}
-
-/* Input textbox */
-.gradio-textbox input {
-    border: 2px solid var(--planqk-light-blue) !important;
-    border-radius: 8px !important;
-    padding: 12px !important;
-    font-size: 1rem !important;
-}
-
-.gradio-textbox input:focus {
-    border-color: var(--planqk-blue) !important;
-    box-shadow: 0 0 0 2px rgba(0, 176, 240, 0.2) !important;
-}
-
-/* Button styling */
-.blue-button {
-    background-color: var(--planqk-dark-blue) !important;
-    color: white !important;
+.bot-message, .gr-message.bot {
+    background: var(--planqk-blue) !important;
+    color: #fff !important;
     border: none !important;
-    padding: 10px 20px !important;
-    border-radius: 6px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    transition: background-color 0.2s, transform 0.1s !important;
+    margin-right: auto !important;
+    text-align: left !important;
 }
 
-.blue-button:hover {
-    background-color: var(--planqk-blue) !important;
-    transform: translateY(-1px) !important;
+.gradio-textbox input, .gradio-textbox textarea {
+    border: 2px solid var(--planqk-blue) !important;
+    border-radius: var(--planqk-border-radius) !important;
+    padding: 14px !important;
+    font-size: 1.05rem !important;
+    background: #fff !important;
+    color: var(--planqk-dark-blue) !important;
+    transition: border-color 0.2s;
+    box-shadow: none !important;
 }
 
-.pink-button {
-    background-color: var(--planqk-accent) !important;
-    color: white !important;
+.gradio-textbox input:focus, .gradio-textbox textarea:focus {
+    border-color: var(--planqk-dark-blue) !important;
+    outline: none !important;
+}
+
+.gr-button, button {
+    background: var(--planqk-blue) !important;
+    color: #fff !important;
     border: none !important;
-    padding: 10px 20px !important;
-    border-radius: 6px !important;
+    border-radius: var(--planqk-border-radius) !important;
+    padding: 13px 32px !important;
     font-weight: 600 !important;
+    font-size: 1.08rem !important;
     cursor: pointer !important;
-    transition: background-color 0.2s, transform 0.1s !important;
+    margin: 0 8px 0 0 !important;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: none !important;
+    letter-spacing: 0.2px;
 }
 
-.pink-button:hover {
-    background-color: #0099d6 !important;  /* Darker shade of PlanQK blue */
-    transform: translateY(-1px) !important;
+.gr-button:hover, button:hover {
+    background: var(--planqk-dark-blue) !important;
 }
 
-/* Like button styling */
-.like-button svg {
-    fill: var(--planqk-blue) !important;
+.clear-button {
+    background: #fff !important;
+    color: var(--planqk-blue) !important;
+    border: 2px solid var(--planqk-blue) !important;
 }
 
-/* Scrollbar styling */
+.clear-button:hover {
+    background: var(--planqk-blue) !important;
+    color: #fff !important;
+}
+
 ::-webkit-scrollbar {
     width: 8px;
 }
-
-::-webkit-scrollbar-track {
-    background: var(--planqk-light-gray);
-}
-
 ::-webkit-scrollbar-thumb {
     background: var(--planqk-blue);
     border-radius: 4px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--planqk-dark-blue);
+::-webkit-scrollbar-track {
+    background: var(--planqk-light-blue);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .message {
-        max-width: 90% !important;
+@media (max-width: 900px) {
+    .gradio-container {
+        max-width: 98vw;
+        padding: 12px 2vw;
+    }
+    .gradio-chatbot {
+        min-height: 250px !important;
+        max-height: 350px !important;
+        height: 350px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .gradio-container {
+        padding: 4px 0;
+    }
+    .gradio-chatbot {
+        padding: 6px !important;
+        min-height: 200px !important;
+        max-height: 250px !important;
+        height: 250px !important;
+    }
+    .message, .gr-message {
+        padding: 8px 10px !important;
+        font-size: 0.95rem !important;
     }
 }
