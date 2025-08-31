@@ -12,4 +12,4 @@ COPY app.py business_mode.py techy_mode.py user_profile.py utils.py styles.css .
 
 EXPOSE 8080
 
-CMD ["python", "apptest.py"]
+CMD ["python", "app.py"]
