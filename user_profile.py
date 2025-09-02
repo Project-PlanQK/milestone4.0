@@ -5,55 +5,28 @@ class UserProfile:
     def __init__(self):
         self.profile = None
 
-    def determine_user_profile(user_message):
-        # Technical (Physicist) keywords and sentence starters
-        technical_keywords = [
-            "code", "algorithm", "script", "model", "dataset", "pipeline", "runtime", "compute", "integration",
-            "orchestration", "deployment", "configuration", "installation", "debugging", "api", "sdk", "cli",
-            "container", "cluster", "credentials", "token", "logs", "error", "stack trace"
-        ]
-        technical_starts = [
-            "how to run", "how to configure", "how to install", "how to fix", "how to integrate",
-            "how to debug", "how to upload", "how to execute"
-        ]
+    def determine_user_profile(self, user_message):  # Add user_message parameter
+        """
+        Determines the user profile based on the message content.
+        Args:
+            user_message (str): The message from the user to analyze
+        Returns:
+            str: The determined profile ("technical" or "business")
+        """
+        # Call additional language model to analyze the user message
+        response = self.call_language_model(user_message)
 
-        # Business keywords and sentence starters
-        business_keywords = [
-            "cost", "pricing", "roi", "license", "contract", "subscription", "procurement", "compliance",
-            "gdpr", "roadmap", "onboarding", "support", "training", "usability", "stakeholder adoption",
-            "decision-making", "value", "plan", "business impact", "management", "long-term benefit"
-        ]
-        business_starts = [
-            "what is the cost", "what is the license", "what is the support", "what is the roadmap",
-            "what is the value", "what is the plan", "what is the business impact"
-        ]
-
-        user_message_lower = user_message.lower().strip()
-
-        # Check for sentence starters
-        is_technical_start = any(user_message_lower.startswith(s) for s in technical_starts)
-        is_business_start = any(user_message_lower.startswith(s) for s in business_starts)
-
-        # Check for keywords
-        has_technical = any(kw in user_message_lower for kw in technical_keywords)
-        has_business = any(kw in user_message_lower for kw in business_keywords)
-
-        # Tie-break rule
-        if has_technical and has_business:
-            # If pricing/cost/license is the focus, classify as Business
-            if any(kw in user_message_lower for kw in ["cost", "pricing", "license"]):
-                return "Business"
-            return "Technical"  # Physicist persona
-        if is_technical_start or has_technical:
-            return "Technical"
-        if is_business_start or has_business:
-            return "Business"
-        # Ambiguous or generic: classify as Business
-        return "Business"
+        if isinstance(response, dict) and "profile" in response:
+            self.profile = response["profile"]
+        else:
+            # Default to business profile if unable to determine
+            self.profile = "business"
+            
+        return self.profile
 
     def call_language_model(self, user_message):
-        api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        endpoint = os.getenv("ENDPOINT_URL")
+        api_key = os.getenv("AZURE_OPENAI_API_KEY", "B2rVSsxT8z5mKYStTRDLflCpqhLCnCj5gtOdTjt3xODI0GKWvv2KJQQJ99BCAChHRaEXJ3w3AAAAACOGzKbK")
+        endpoint = os.getenv("ENDPOINT_URL", "https://aifoundrydbe7986002173.openai.azure.com/")
         openai.api_type = "azure"
         openai.api_key = api_key
         openai.api_base = endpoint
