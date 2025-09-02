@@ -25,8 +25,8 @@ class UserProfile:
         return self.profile
 
     def call_language_model(self, user_message):
-        api_key = os.getenv("AZURE_OPENAI_API_KEY", "B2rVSsxT8z5mKYStTRDLflCpqhLCnCj5gtOdTjt3xODI0GKWvv2KJQQJ99BCAChHRaEXJ3w3AAAAACOGzKbK")
-        endpoint = os.getenv("ENDPOINT_URL", "https://aifoundrydbe7986002173.openai.azure.com/")
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        endpoint = os.getenv("ENDPOINT_URL")
         openai.api_type = "azure"
         openai.api_key = api_key
         openai.api_base = endpoint
