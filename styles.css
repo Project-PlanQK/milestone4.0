@@ -4,12 +4,13 @@
     --planqk-dark-blue: #081b39;
     --planqk-blue: #00b0f0;
     --planqk-light-blue: #e6f7ff;
-    --planqk-accent: #00b0f0;
+    --planqk-accent: #d7da19fc;
     --planqk-light-gray: #f5f7fa;
     --planqk-dark-gray: #333333;
     --planqk-border-radius: 14px;
     --planqk-shadow: 0 2px 12px rgba(8, 27, 57, 0.06);
     --planqk-font: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    --planqk-lilac: #9c0085; /* PlanQK lilac */
 }
 
 body, .gradio-container {
@@ -96,6 +97,9 @@ h2, .gradio-markdown h2 {
     color: var(--planqk-dark-blue) !important;
     transition: border-color 0.2s;
     box-shadow: none !important;
+    width: calc(100% - 28px) !important;  /* Full width minus padding */
+    min-width: 300px !important;
+    box-sizing: border-box !important;
 }
 
 .gradio-textbox input:focus, .gradio-textbox textarea:focus {
@@ -108,14 +112,15 @@ h2, .gradio-markdown h2 {
     color: #fff !important;
     border: none !important;
     border-radius: var(--planqk-border-radius) !important;
-    padding: 13px 32px !important;
+    padding: 8px 16px !important;
     font-weight: 600 !important;
-    font-size: 1.08rem !important;
+    font-size: 0.9rem !important;
     cursor: pointer !important;
-    margin: 0 8px 0 0 !important;
+    margin: 0 4px 0 0 !important;
     transition: background 0.2s, box-shadow 0.2s;
     box-shadow: none !important;
     letter-spacing: 0.2px;
+    white-space: nowrap;
 }
 
 .gr-button:hover, button:hover {
@@ -133,6 +138,39 @@ h2, .gradio-markdown h2 {
     color: #fff !important;
 }
 
+.blue-button {
+    min-width: 100px !important;  /* Set minimum width */
+    max-width: 120px !important;  /* Set maximum width */
+    padding: 8px 12px !important;  /* Reduce padding */
+    font-size: 0.85rem !important;  /* Slightly smaller font */
+    margin: 0 2px !important;  /* Reduce margin between buttons */
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Lilac button style */
+.lilac-button {
+    background: var(--planqk-lilac) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: var(--planqk-border-radius) !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    cursor: pointer !important;
+    margin: 0 4px 0 0 !important;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: none !important;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+
+.lilac-button:hover {
+    background: #7c5cbf !important; /* darker lilac for hover */
+}
+
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -142,6 +180,25 @@ h2, .gradio-markdown h2 {
 }
 ::-webkit-scrollbar-track {
     background: var(--planqk-light-blue);
+}
+
+.button-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    width: 100% !important;
+}
+
+.gr-form > .gr-button-row {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+}
+
+.gr-form {
+    width: 100% !important;
+    max-width: none !important;
 }
 
 @media (max-width: 900px) {
