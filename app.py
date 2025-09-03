@@ -358,7 +358,7 @@ with gr.Blocks(css=styles_css) as demo:
     with gr.Row():
         with gr.Column(scale=1):
             gr.Image(
-                value="./assets/PlanQK_Logo.svg",  # Use relative path with ./
+                value="./assets/PlanQK_Logo.png",  # Use relative path with ./
                 show_label=False,
                 height=40,
                 container=False,
