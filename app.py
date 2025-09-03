@@ -172,25 +172,37 @@ def post_request(messages, user_profile=None):
                 presence_penalty=0,  # controls the presence of new words (0.0 - 1.0)
                 stop=None,  # stop sequence for the generation (None means no stop sequence)
                 stream=True,  # whether to stream the response
-                extra_body={  # additional parameters for the Azure Search
-                    "data_sources": [{  # specify data source type
-                        "type": "azure_search",
-                        "parameters": {
-                            "filter": None,  # filter to limit the search results (e.g., "category eq 'news'")
+                extra_body={ # additional parameters for the Azure Search
+                        "data_sources": [{  # specify data source type
+                            "type": "azure_search",
+                            "parameters": {
+                                "filter": None, # filter to limit the search results (e.g., "category eq 'news'")
                                 "endpoint": search_endpoint,
                                 "index_name": "rag-1749220504930",
-                                "semantic_configuration": "",
+                                # Find this name in your Azure Search Index -> Semantic configurations. It cannot be empty.
+                                "semantic_configuration": "rag-1749220504930-semantic-configuration",
                                 "authentication": {
                                     "type": "api_key",
                                     "key": search_key
                                 },
-                                "query_type": "simple",
+                                "query_type": "vector_simple_hybrid",
+                                "embedding_dependency": {
+                                    "type": "deployment_name",
+                                    # This must be the exact "Deployment name" from Azure AI Studio's "Deployments" page.
+                                    "deployment_name": "text-embedding-3-large" 
+                                },
                                 "in_scope": False, #setting in_scope to false means, that documents not belonging to the database or topic will be used and searched additionally
                                 #"role_information": "You are an AI assistant that helps people find information.",
                                 "strictness": 1, # strictness of the search results (0-5). 0 means no strictness, 5 means very strict. The stricter the search, the more relevant the results are. The strictness has to be between 1 and 5, where 1 allows a greater variety in answers with more data being seen as possibly relevant
-                                "top_n_documents": 10 # number of documents to retrieve from the search (1-10). The more documents are retrieved, the more relevant the results are. The top_n_documents has to be between 1 and 10, where 1 means only one document is retrieved and 10 means all documents are retrieved.
+                                "top_n_documents": 10, # number of documents to retrieve from the search (1-10). The more documents are retrieved, the more relevant the results are. The top_n_documents has to be between 1 and 10, where 1 means only one document is retrieved and 10 means all documents are retrieved.
+                                "fields_mapping": {
+                                    "content_fields": ["content"],
+                                    "vector_fields": ["text_vector"],
+                                    "title_field": "title",
+                                    "url_field": "url",
+                                }
                             }
-                        }]
+                        }],
                     }
                 )
             print("Completion created, starting Streaming")  # Debug print
@@ -357,7 +369,7 @@ with gr.Blocks(css=styles_css) as demo:
     with gr.Row():
         with gr.Column(scale=1):
             gr.Image(
-                value="./assets/PlanQK_Logo.png",  # Use relative path with ./
+                value="./assets/PlanQK_Logo.svg",  # Use relative path with ./
                 show_label=False,
                 height=40,
                 container=False,

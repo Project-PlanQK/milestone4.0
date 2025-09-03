@@ -92,7 +92,6 @@ if __name__ == "__main__":
         "https://docs.planqk.de/tutorials/tutorial-qiskit-runtime.html",
         "https://docs.planqk.de/community/overview.html",
         "https://docs.planqk.de/community/algorithms.html",
-        "https://docs.planqk.de/community/data-pools.html",
         "https://docs.planqk.de/community/use-cases.html",
         "https://docs.planqk.de/community/markdown-latex-editor.html",
         "https://docs.planqk.de/community/manage-permissions.html",
