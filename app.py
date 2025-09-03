@@ -7,7 +7,6 @@ from openai import AzureOpenAI
 import openai
 import asyncio
 import json
-import re
 from techy_mode import handle_techy
 from business_mode import handle_business
 # Import necessary libraries for OpenTelemetry
@@ -31,7 +30,7 @@ tracer = trace.get_tracer(__name__)
 print("Starting post_request") #debug
 
 # Define a function to post a request to the Azure OpenAI model
-async def post_request(messages, user_profile=None):
+def post_request(messages, user_profile=None):
     # Get environment variables for the configuration
     endpoint = os.getenv("ENDPOINT_URL") #url of the Azure OpenAI endpoint #alt
     #endpoint="https://aifoundrydbe7986002173.services.ai.azure.com/models"
@@ -208,39 +207,30 @@ async def post_request(messages, user_profile=None):
                 )
             print("Completion created, starting Streaming")  # Debug print
 
-            # Process the streaming response
-            citations = []
-            full_response = ""
-            
+            # After streaming, get citations and other info from the last chunk
+            partial = ""
             for chunk in completion:
-                if chunk.choices and chunk.choices[0].delta:
-                    delta = chunk.choices[0].delta
-                    
-                    # Check for citation metadata
-                    if delta.tool_calls:
-                        tool_call = delta.tool_calls[0]
-                        if tool_call.function.name == "retrieval":
-                            tool_args = json.loads(tool_call.function.arguments)
-                            citations.extend(tool_args.get("citations", []))
-                            print(f"Found citations: {len(citations)}")
+                if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+                    print(f"Streaming chunk: {chunk.choices[0].delta.content}")  # Debug print
 
-                    # Stream content
-                    if delta.content:
-                        content_chunk = delta.content
-                        full_response += content_chunk
-                        yield content_chunk, None # Yield content chunk for streaming display
+            # Store the final chunk for metadata
+            final_chunk = chunk
 
-            # After streaming, replace placeholders with citations
-            if citations:
-                for i, citation in enumerate(citations):
-                    doc_id = f"[doc{i+1}]"
-                    title = citation.get('title', 'source')
-                    url = citation.get('url', '#')
-                    replacement = f"[{title}]({url})"
-                    full_response = full_response.replace(doc_id, replacement)
-            
-            # Final processed response
-            yield None, full_response
+            # After streaming, get citations and other info from the last chunk
+            if final_chunk:
+                citations = getattr(final_chunk.choices[0], "citations", None)
+                span.set_attribute("rag.documents_used", bool(citations))
+                if citations:
+                    span.set_attribute("rag.num_documents", len(citations))
+                    for i, doc in enumerate(citations):
+                        span.set_attribute(f"rag.doc_{i}.url", doc.get("url", ""))
+                        span.set_attribute(f"rag.doc_{i}.title", doc.get("title", ""))
+                        span.set_attribute(f"rag.doc_{i}.chunk_index", doc.get("chunk_index", -1))
+                # Modell-Infos
+                span.set_attribute("model.finish_reason", final_chunk.choices[0].finish_reason)
+                span.set_attribute("model.response_length", len(partial))
+                # span.set_attribute("model.total_tokens", ...) # Not available in stream mode
 
         except Exception as e:
             # Handle any exceptions that occur during the request
@@ -267,12 +257,10 @@ async def bot_simple(history, user_profile):
         bot_response = ""
         result_generator = post_request(history, user_profile)
         
-        async for chunk, final_response in result_generator:
+        for chunk in result_generator:
             if chunk:
                 print(f"Received chunk: {chunk}")  # Debug print
                 bot_response += chunk
-            elif final_response:
-                bot_response = final_response # Use the final processed response
         
         print(f"Final response: {bot_response}")  # Debug print
         
@@ -298,19 +286,14 @@ async def bot_with_streaming(user_message, history, user_profile):
     current_response = ""
     
     try:
-        async for delta, final_response in post_request(history, user_profile):
+        for delta in post_request(history, user_profile):  # Remove async for
             if delta:
                 current_response += delta
                 history_with_stream = history + [{"role": "assistant", "content": current_response}]
                 yield history_with_stream, user_profile, gr.update(interactive=False)
                 await asyncio.sleep(0.01)  # Small delay for smoother streaming
-            elif final_response:
-                # Final update with processed citations
-                final_history = history + [{"role": "assistant", "content": final_response}]
-                yield final_history, user_profile, gr.update(value="", interactive=True)
-                return # End of streaming
-
-        # Fallback if stream ends without a final response (should not happen with new logic)
+        
+        # Final yield with complete response
         final_history = history + [{"role": "assistant", "content": current_response}]
         yield final_history, user_profile, gr.update(value="", interactive=True)
     
@@ -339,39 +322,24 @@ def like(evt: gr.LikeData, history, user_profile):
         temp_history.append({"role": "system", "content": system_prompt})
         try:
             bot_response = ""
-            # This part is non-streaming, so it needs to be adapted.
-            # For simplicity, let's make it async and use the new post_request
-            # This requires making `like` async, which Gradio supports.
-            # However, to keep changes minimal, we'll do a blocking call.
-            
-            async def get_response():
-                full_response = ""
-                async for chunk, final in post_request(temp_history, user_profile):
-                    if chunk:
-                        full_response += chunk
-                    elif final:
-                        full_response = final
-                return full_response
-
-            bot_response = asyncio.run(get_response())
+            for chunk in post_request(temp_history, user_profile):
+                bot_response += chunk
             history.append({"role": "assistant", "content": bot_response})
         except Exception as e:
             history.append({"role": "assistant", "content": f"Error during OpenAI request: {e}"})
         return history, user_profile
     
-async def ask_predefined_question(question, history, user_profile):
+def ask_predefined_question(question, history, user_profile):
     try:
         print(f"Processing question: {question}")  # Debug print
         history.append({"role": "user", "content": question})
         bot_response = ""
             
         # Get the response chunks
-        async for chunk, final_response in post_request(history, user_profile):
+        for chunk in post_request(history, user_profile):
             if chunk:
                 print(f"Received chunk: {chunk}")  # Debug print
                 bot_response += chunk
-            elif final_response:
-                bot_response = final_response # Use the final processed response
             
         print(f"Final response: {bot_response}")  # Debug print
             
@@ -460,20 +428,17 @@ with gr.Blocks(css=styles_css) as demo:
     question1_btn.click(
         ask_predefined_question,
         inputs=[gr.State("Please tell me how to generate my first Use Case."), chatbot, user_profile_state],
-        outputs=[chatbot, user_profile_state, msg],
-        queue=True
+        outputs=[chatbot, user_profile_state, msg]
     )
     question2_btn.click(
         ask_predefined_question,
         inputs=[gr.State("Please give me further information about PlanQK Use Cases"), chatbot, user_profile_state],
-        outputs=[chatbot, user_profile_state, msg],
-        queue=True
+        outputs=[chatbot, user_profile_state, msg]
     )
     question3_btn.click(
         ask_predefined_question,
         inputs=[gr.State("How can I use an Algorithm API?"), chatbot, user_profile_state],
-        outputs=[chatbot, user_profile_state, msg],
-        queue=True
+        outputs=[chatbot, user_profile_state, msg]
     )
 
     #handle the streaming button click
