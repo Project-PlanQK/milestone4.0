@@ -185,12 +185,6 @@ def post_request(messages, user_profile=None):
                                     "type": "api_key",
                                     "key": search_key
                                 },
-                                "fields_mapping": {
-                                    "content_fields": ["content"],
-                                    "title_field": "title",
-                                    "url_field": "url",
-                                    "filepath_field": "filepath"
-                                },
                                 "query_type": "simple",
                                 "in_scope": False, #setting in_scope to false means, that documents not belonging to the database or topic will be used and searched additionally
                                 #"role_information": "You are an AI assistant that helps people find information.",
