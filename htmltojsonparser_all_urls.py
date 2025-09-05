@@ -156,7 +156,9 @@ if __name__ == "__main__":
         "https://platform.planqk.de/algorithms/4ab6ed1f-9f5e-4caf-b0b2-59d1444340d1/details",
         "https://platform.planqk.de/algorithms/31283a02-1d55-4ef8-bccf-3e418ed7ed0d/details",
         "https://platform.planqk.de/algorithms/00ae76fd-e6bf-4e47-93e9-c2f438040add/details",
-        "https://platform.planqk.de/algorithms/28fbfa6b-329b-4d99-8c75-f9dbdd365a4f/details"
+        "https://platform.planqk.de/algorithms/28fbfa6b-329b-4d99-8c75-f9dbdd365a4f/details",
+        "https://platform.planqk.de/v2/datapools",
+        "https://platform.planqk.de/service-jobs"
 
     ]
 
