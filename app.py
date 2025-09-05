@@ -195,7 +195,6 @@ def post_request(messages, user_profile=None):
                                 #"role_information": "You are an AI assistant that helps people find information.",
                                 "strictness": 1, # strictness of the search results (0-5). 0 means no strictness, 5 means very strict. The stricter the search, the more relevant the results are. The strictness has to be between 1 and 5, where 1 allows a greater variety in answers with more data being seen as possibly relevant
                                 "top_n_documents": 10, # number of documents to retrieve from the search (1-10). The more documents are retrieved, the more relevant the results are. The top_n_documents has to be between 1 and 10, where 1 means only one document is retrieved and 10 means all documents are retrieved.
-                                "includeCitations": True, # whether to include citations in the response
                                 "fields_mapping": {
                                     "content_fields": ["chunk"],
                                     "vector_fields": ["text_vector"],
