@@ -203,6 +203,7 @@ def post_request(messages, user_profile=None):
                                 }
                             }
                         }],
+                        "includeCitations": True,
                     }
                 )
             print("Completion created, starting Streaming")  # Debug print
