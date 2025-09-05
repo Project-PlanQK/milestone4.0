@@ -2,12 +2,12 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import os
+from playwright.sync_api import sync_playwright
 
-def fetch_webpage(url):
+def fetch_webpage(url, page):
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        return response.text
+        page.goto(url, wait_until="networkidle", timeout=20000)
+        return page.content()
     except Exception as e:
         print(f"Fehler beim Abrufen von {url}: {e}")
         return None
@@ -39,8 +39,8 @@ def save_as_json(data, url, output_folder="output"):
         json.dump(data, f, indent=2, ensure_ascii=False)
     print(f"✔️  Gespeichert: {filepath}")
 
-def process_url(url):
-    html = fetch_webpage(url)
+def process_url(url, page):
+    html = fetch_webpage(url, page)
     if html:
         extracted = extract_text(html)
         extracted["url"] = url
@@ -164,5 +164,9 @@ if __name__ == "__main__":
 
     anzahl_url = len(urls)
 
-    for url in urls:
-        process_url(url)
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        for url in urls:
+            process_url(url, page)
+        browser.close()

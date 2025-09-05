@@ -201,7 +201,6 @@ def post_request(messages, user_profile=None):
                                     "title_field": "title",
                                     "url_field": "url",
                                 },
-                                "include_citations": True
                             }
                         }],
                     }
