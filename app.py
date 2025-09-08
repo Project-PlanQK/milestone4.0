@@ -392,14 +392,6 @@ with open("styles.css") as styles:
 # Create a Gradio chat interface
 with gr.Blocks(css=styles_css) as demo:
     with gr.Row():
-        with gr.Column(scale=1):
-            gr.Image(
-                value="./assets/PlanQK_Logo.png",  # Use relative path with ./
-                show_label=False,
-                height=40,
-                container=False,
-                scale=1
-            )
         with gr.Column(scale=4):
             gr.Markdown("# PlanQK Assistant Chatbot")
 
