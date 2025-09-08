@@ -33,7 +33,7 @@ class UserProfile:
         openai.api_version = "2025-01-01-preview"
         try:
             response = openai.ChatCompletion.create(
-                model="your-model-name",  # Replace with the actual model name
+                model="gpt-4o",  # Replace with the actual model name
                 messages=[
                     {"role": "user", "content": user_message}
                 ],
