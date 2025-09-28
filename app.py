@@ -109,7 +109,7 @@ def post_request(messages, user_profile=None):
               
               Response Style
               - Lead with the most relevant answer or recommendation
-              - Include specific PlanQK resources with links: `source: https://platform.planqk.de/[path]`
+              - Include specific PlanQK resources with links: `source: https://platform.planqk.de/[path]` (always remove a trailing `.html` from the URL before outputting, so the link ends with the clean path only)
               - When citing documents, use only the metadata (title, url) of the citations. Never output placeholders like [doc1]; instead, format sources as Title (or only [Title] or [URL] if one is missing). For multiple sources, list them separated by commas, do not repeat the same source consecutively, and do not invent links or titles. 
               - Ask follow-up questions to better understand user needs
               - End naturally - no forced closing statements unless conversation feels complete
