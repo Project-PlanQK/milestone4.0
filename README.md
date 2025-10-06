@@ -21,8 +21,10 @@ The PlanQK Assistant is a sophisticated chatbot that adapts its communication st
 
 ## 📖 Documentation
 
-**For complete documentation, setup instructions, and usage guides, see:**
-### **[milestone4.1/README.md](./milestone4.1/README.md)** 📚
+### 📚 Available Guides
+
+- **[QUICK_START.md](./QUICK_START.md)** - Get running in 5 minutes! ⚡
+- **[milestone4.1/README.md](./milestone4.1/README.md)** - Complete documentation & developer guide 📖
 
 The main application code is in the `milestone4.1/` directory.
 

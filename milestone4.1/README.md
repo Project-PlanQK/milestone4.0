@@ -18,10 +18,57 @@ The PlanQK Assistant is a sophisticated chatbot that automatically adapts its co
 ## 🏗️ Architecture
 
 ```
-User Input → User Profile Detection → RAG Context Retrieval → Azure OpenAI (GPT-4) → Streaming Response
-                                            ↓
-                                    Azure Search Index
-                                    (PlanQK Knowledge Base)
+┌─────────────┐
+│  User Query │
+└──────┬──────┘
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────┐
+│                    PlanQK Assistant                           │
+│                                                               │
+│  ┌─────────────────────┐      ┌────────────────────────┐    │
+│  │ User Profile        │      │ Chat History           │    │
+│  │ Detection (LLM)     │      │ Manager                │    │
+│  │                     │      │                        │    │
+│  │ • Business keywords │      │ • Load conversations   │    │
+│  │ • Technical keywords│      │ • Save sessions        │    │
+│  │ • GPT-4 classifier  │      │ • JSON persistence     │    │
+│  └──────────┬──────────┘      └────────────────────────┘    │
+│             │                                                 │
+│             ▼                                                 │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │          RAG Context Retrieval                   │        │
+│  │                                                   │        │
+│  │  1. Query transformation                         │        │
+│  │  2. Azure Search (top 10 docs)                   │        │
+│  │  3. Relevance filtering (strictness=1)           │        │
+│  └──────────┬───────────────────────────────────────┘        │
+│             │                                                 │
+│             ▼                                                 │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │     Response Generation (Azure OpenAI GPT-4)     │        │
+│  │                                                   │        │
+│  │  • System prompt (profile-specific)              │        │
+│  │  • Retrieved context (RAG documents)             │        │
+│  │  • Conversation history                          │        │
+│  │  • Temperature: 0.1 (precise)                    │        │
+│  │  • Stream: True (real-time)                      │        │
+│  └──────────┬───────────────────────────────────────┘        │
+│             │                                                 │
+└─────────────┼─────────────────────────────────────────────────┘
+              │
+              ▼
+       ┌──────────────┐
+       │   Streaming  │
+       │   Response   │
+       │  + Citations │
+       └──────────────┘
+
+External Services:
+┌─────────────────────┐  ┌──────────────────────┐  ┌─────────────────────┐
+│  Azure OpenAI       │  │  Azure AI Search     │  │  App Insights       │
+│  (GPT-4 Model)      │  │  (Knowledge Base)    │  │  (Telemetry)        │
+└─────────────────────┘  └──────────────────────┘  └─────────────────────┘
 ```
 
 ### How It Works
