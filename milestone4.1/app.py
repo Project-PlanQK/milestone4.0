@@ -57,9 +57,10 @@ def generate_system_prompt(user_profile):
                 3. When presenting factual information based on retrieved content, include citations like "source: https://platform.planqk.de/quantum-backends'" (if the URL ends with `.html`, always remove the `.html` suffix before outputting, so that links end only with the clean path) directly after the statement as:
                 - Single source: url
                 - Multiple sources: url, url
-                4. Only provide information related to the PlanQK platform, its services, tools, documentation, or the user's interactions with it. Do not answer questions beyond this scope.
-                5. "Is there anything else I can help you with on PlanQK?"
-                6. The exact profile line as specified above
+                4. When citing documents, use only the metadata (title, url) of the citations. Never output placeholders like [doc1]; instead, format sources as Title (or only [Title] or [URL] if one is missing). For multiple sources, list them separated by commas, do not repeat the same source consecutively, and do not invent links or titles.
+                5. Only provide information related to the PlanQK platform, its services, tools, documentation, or the user's interactions with it. Do not answer questions beyond this scope.
+                6. "Is there anything else I can help you with on PlanQK?"
+                7. The exact profile line as specified above
 
                 Is there anything else I can help you with on PlanQK?"""
     
@@ -82,7 +83,7 @@ def generate_system_prompt(user_profile):
 # Define a function to post a request to the Azure OpenAI model
 def post_request(messages, user_profile=None):
     # Get environment variables for the configuration
-    endpoint = os.getenv("ENDPOINT_URL") #api version ersetzen 1125
+    endpoint = os.getenv("ENDPOINT_URL")
     #deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o-mini")
     search_endpoint = os.getenv("SEARCH_ENDPOINT")
     search_key = os.getenv("SEARCH_KEY")
@@ -111,7 +112,7 @@ def post_request(messages, user_profile=None):
         #configure_azure_monitor(connection_string=connection_string)
         connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
         print(f"Application Insights Connection String available: {bool(connection_string)}")
-        if connection_string:
+        if connection_string and connection_string.strip():
             configure_azure_monitor(connection_string=connection_string)
             print("Azure Monitor configured successfully")
         else:
@@ -373,53 +374,89 @@ with open("styles.css") as styles:
     styles_css = styles.read()
 
 # Create a Gradio chat interface
-with gr.Blocks(css=styles_css) as demo:
-    with gr.Row():
-        with gr.Column(scale=4):
-            gr.Markdown("# PlanQK Assistant Chatbot")
+# Create a Gradio chat interface
+with gr.Blocks(css=styles_css, title="PlanQK Assistant") as demo:
+    # Header Section
+    with gr.Row(elem_classes="header-section"):
+        with gr.Column():
+            gr.Markdown("""
+                # 🚀 PlanQK Assistant Chatbot
+                <div class="subtitle">Your intelligent guide to quantum computing and AI solutions</div>
+                <div class="status-indicator status-online"></div> Online & Ready to Help
+            """)
 
-    # Dropdown to select previous chats
-    chat_selector = gr.Dropdown(
-        label="Select Previous Chat",
-        choices=[],
-        interactive=True
-    )
+    # Chat History Controls
+    with gr.Row(elem_classes="chat-controls"):
+        with gr.Column(scale=2):
+            gr.Markdown("### 💬 Chat Management")
+            chat_selector = gr.Dropdown(
+                label="📂 Select Previous Chat",
+                choices=[],
+                interactive=True,
+                info="Choose a previous conversation..."  # Use 'info' instead of 'placeholder'
+            )
+        with gr.Column(scale=1):
+            gr.Markdown("### 🆕 Actions")
+            new_chat_button = gr.Button("🌟 Start New Chat", elem_classes="blue-button", size="lg")
 
-    # Button to start a new chat
-    new_chat_button = gr.Button("Start New Chat", elem_classes="blue-button")
-
+    # Main Chat Interface
     chatbot = gr.Chatbot(
         value=initial_greeting,
-        height=400,
+        height=550,
         show_copy_button=True,
-        type="messages"  # Add this line
+        type="messages",
+        bubble_full_width=False,
+        show_label=False,
+        container=True
     )
     user_profile_state = gr.State(value=None)
 
-    # --- Inline Question Buttons ---
-    with gr.Row(elem_classes="button-row"):
-        question1_btn = gr.Button(
-            "Generate Use Case",
-            elem_id="inline-q1",
-            elem_classes="lilac-button"
-        )
-        question2_btn = gr.Button(
-            "PlanQK Use Cases Info",   
-            elem_id="inline-q2",
-            elem_classes="lilac-button"
-        )
-        question3_btn = gr.Button(
-            "Use Algorithm APIs",
-            elem_id="inline-q3",
-            elem_classes="lilac-button"
-        )
+    # Quick Action Buttons
+    with gr.Row(elem_classes="quick-actions"):
+        with gr.Column():
+            gr.Markdown("#### ⚡ Quick Actions - Get Started Instantly")
+            with gr.Row(elem_classes="button-row"):
+                question1_btn = gr.Button(
+                    "🎯 Generate Use Case",
+                    elem_id="inline-q1",
+                    elem_classes="lilac-button",
+                    size="lg"
+                )
+                question2_btn = gr.Button(
+                    "📊 PlanQK Use Cases Info",   
+                    elem_id="inline-q2",
+                    elem_classes="lilac-button",
+                    size="lg"
+                )
+                question3_btn = gr.Button(
+                    "🔧 Use Algorithm APIs",
+                    elem_id="inline-q3",
+                    elem_classes="lilac-button",
+                    size="lg"
+                )
 
+    # Input Section
+    with gr.Row(elem_classes="input-section"):
+        with gr.Column(scale=4):
+            msg = gr.Textbox(
+                label="💭 Your Message", 
+                placeholder="Ask me anything about PlanQK, quantum computing, or AI solutions...",
+                lines=2,
+                max_lines=5
+            )
+        with gr.Column(scale=1):
+            with gr.Row():
+                streaming_button = gr.Button("🚀 Send", elem_classes="blue-button", variant="primary", size="lg")
+                clear_button = gr.Button("🗑️ Clear", elem_classes="blue-button", variant="secondary")
+
+    # Footer
     with gr.Row():
-        with gr.Column(scale=6):
-            msg = gr.Textbox(label="Message", scale=3)
-        with gr.Column(scale=2):
-            streaming_button = gr.Button("Enter", elem_classes="blue-button")
-            clear_button = gr.Button("Clear", elem_classes="blue-button")
+        gr.Markdown("""
+            <div style='text-align: center; color: #6b7280; font-size: 0.9rem; margin-top: 20px;'>
+                Powered by Azure OpenAI & PlanQK Knowledge Base | 
+                <span class="status-indicator status-online"></span> Real-time AI Assistance
+            </div>
+        """)
 
      # --- Event Handlers ---
     
