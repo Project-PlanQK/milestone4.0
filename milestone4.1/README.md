@@ -2,20 +2,20 @@
 
 An intelligent conversational AI assistant specifically designed for the PlanQK platform. This chatbot helps users navigate quantum computing, AI/ML solutions, and optimization services by providing context-aware, personalized responses powered by Azure OpenAI and Retrieval Augmented Generation (RAG).
 
-## 🌟 Overview
+## Overview
 
 The PlanQK Assistant is a sophisticated chatbot that automatically adapts its communication style based on user needs. It intelligently determines whether you're a business stakeholder or a technical developer, then tailors its responses accordingly - providing high-level insights for business users and detailed technical guidance for developers.
 
 ### Key Capabilities
 
-- **🎯 Intelligent User Profiling**: Automatically detects if you're a business or technical user
-- **📚 RAG-Powered Responses**: Retrieves relevant information from PlanQK knowledge base
-- **💬 Streaming Conversations**: Real-time response generation for better user experience
-- **📝 Chat History Management**: Save and resume conversations across sessions
-- **🎨 Modern UI**: Clean, professional interface built with Gradio
-- **📊 Full Observability**: OpenTelemetry instrumentation with Azure Application Insights
+- **Intelligent User Profiling**: Automatically detects if you're a business or technical user
+- **RAG-Powered Responses**: Retrieves relevant information from PlanQK knowledge base
+- **Streaming Conversations**: Real-time response generation for better user experience
+- **Chat History Management**: Save and resume conversations across sessions
+- **Modern UI**: Clean, professional interface built with Gradio
+- **Full Observability**: OpenTelemetry instrumentation with Azure Application Insights
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 User Input → User Profile Detection → RAG Context Retrieval → Azure OpenAI (GPT-4) → Streaming Response
@@ -35,7 +35,7 @@ User Input → User Profile Detection → RAG Context Retrieval → Azure OpenAI
    - Conversation history
 5. **Streaming Output**: The response is streamed back to you in real-time
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -92,7 +92,7 @@ PORT=8080  # Default: 8080
    - Open your browser and navigate to `http://localhost:8080`
    - Start chatting with the PlanQK Assistant!
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ### Using Docker (Recommended)
 
@@ -141,7 +141,7 @@ services:
 
 Run with: `docker-compose up -d`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 milestone4.1/
@@ -178,12 +178,12 @@ milestone4.1/
 #### `styles.css` - UI Styling
 - Custom PlanQK brand colors and modern design
 - Gradient headers, styled buttons, and responsive layout
-## 🎨 User Interface Features
+## User Interface Features
 ### Quick Action Buttons
 Three predefined prompts to help users get started:
-- **🎯 Generate Use Case**: "Please tell me how to generate my first Use Case."
-- **📊 PlanQK Use Cases Info**: "Please give me further information about PlanQK Use Cases"
-- **🔧 Use Algorithm APIs**: "How can I use an Algorithm API?"
+- **Generate Use Case**: "Please tell me how to generate my first Use Case."
+- **PlanQK Use Cases Info**: "Please give me further information about PlanQK Use Cases"
+- **Use Algorithm APIs**: "How can I use an Algorithm API?"
 ### Chat Management
 - **Load Previous Chats**: Dropdown to select and resume past conversations
 - **Start New Chat**: Create a fresh session (auto-saves current chat)
@@ -194,7 +194,7 @@ Three predefined prompts to help users get started:
   - **Dislike**: Automatically requests a more detailed response
 - **Copy Button**: Copy any message to clipboard
 - **Clear Button**: Reset conversation to initial state
-## 🔧 Configuration
+## Configuration
 ### System Prompt Customization
 The system prompt is generated dynamically in `generate_system_prompt()` function in `app.py`. You can customize:
 - Response tone and style
@@ -209,11 +209,11 @@ extra_body={
         "type": "azure_search",
         "parameters": {
             "endpoint": search_endpoint,
-            "index_name": "rag-1749220504930",  # Change this
-            "top_n_documents": 10,               # Number of docs to retrieve
-            "strictness": 1,                     # Relevance threshold
-            "in_scope": False,                   # Allow off-topic queries
-            "query_type": "simple",              # Or "semantic"
+            "index_name": "rag-1749220504930",       # Change this
+            "top_n_documents": 10,                   # Number of docs to retrieve
+            "strictness": 1,                         # Relevance threshold
+            "in_scope": False,                       # Allow off-topic queries
+            "query_type": "simple_vector_hybrid",             
             # ... more parameters
         }
     }]
@@ -251,7 +251,7 @@ The application uses OpenTelemetry to provide detailed tracing:
 - Navigate to Application Insights → Performance → Dependencies
 - Filter by operation name: "User-Profiling", "RAG-Context-Retrieval"
 
-## 🧪 Testing
+## Testing
 
 ### Manual Testing
 1. Start the application: `python app.py`
@@ -271,7 +271,7 @@ To verify user profiling works correctly:
 - Try messages with technical keywords vs. business keywords
 - Observe response style differences
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -280,26 +280,17 @@ To verify user profiling works correctly:
 - **Solution**: Verify `AZURE_OPENAI_API_KEY` and `ENDPOINT_URL` are set correctly
 - **Check**: `echo $AZURE_OPENAI_API_KEY` (should not be empty)
 
-**Issue: "No documents found in RAG retrieval"**
-- **Cause**: Azure Search index is empty or index name is wrong
-- **Solution**: Verify `SEARCH_ENDPOINT`, `SEARCH_KEY`, and index name (`rag-1749220504930`)
-- **Check**: Test Azure Search API directly with Postman or curl
-
 **Issue: "Connection timeout on application start"**
 - **Cause**: Network issues or Azure service unavailable
 - **Solution**: Check your internet connection and Azure service status
 - **Workaround**: Increase timeout in Azure client initialization
-
-**Issue: "Chat history not saving"**
-- **Cause**: Permission issues on `chat_histories/` directory
-- **Solution**: Ensure directory exists and is writable: `chmod 755 chat_histories/`
 
 **Issue: "Telemetry not appearing in Azure"**
 - **Cause**: Missing or invalid `APPLICATIONINSIGHTS_CONNECTION_STRING`
 - **Solution**: Verify connection string format: `InstrumentationKey=...;IngestionEndpoint=...`
 - **Note**: Telemetry is optional; app works without it
 
-## 🔒 Security Considerations
+## Security Considerations
 
 - **Never commit secrets**: Use environment variables, not hardcoded keys
 - **Use Azure Key Vault**: Store secrets securely in production
@@ -308,7 +299,7 @@ To verify user profiling works correctly:
 - **Input validation**: User input is sanitized before sending to LLM
 - **Rate limiting**: Consider adding rate limits for production deployment
 
-## 📈 Performance Optimization
+## Performance Optimization
 
 ### Tips for Better Performance
 1. **Use streaming**: Already implemented for real-time responses
@@ -325,7 +316,7 @@ To verify user profiling works correctly:
 - **Session management**: Implement Redis for session state across instances
 - **Async processing**: Already uses async for streaming; good for concurrent users
 
-## 🛠️ Development
+## Development
 
 ### Adding New Features
 
@@ -333,7 +324,7 @@ To verify user profiling works correctly:
 1. In `app.py`, find the Quick Actions section
 2. Add a new button with unique ID:
    ```python
-   question4_btn = gr.Button("🆕 New Action", elem_id="inline-q4")
+   question4_btn = gr.Button("New Action", elem_id="inline-q4")
    ```
 3. Add click handler:
    ```python
@@ -354,7 +345,7 @@ To verify user profiling works correctly:
 2. Adjust `top_n_documents`, `strictness`, `query_type`, etc.
 3. Test with different index names if you have multiple knowledge bases
 
-## 📚 Additional Resources
+## Additional Resources
 
 - **PlanQK Platform**: [https://platform.planqk.de/](https://platform.planqk.de/)
 - **Azure OpenAI Docs**: [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
@@ -362,7 +353,7 @@ To verify user profiling works correctly:
 - **Gradio Documentation**: [Gradio Docs](https://www.gradio.app/docs/)
 - **OpenTelemetry**: [OpenTelemetry Python](https://opentelemetry.io/docs/languages/python/)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please:
 1. Fork the repository
@@ -372,11 +363,11 @@ Contributions are welcome! Please:
 5. Push to your fork: `git push origin feature/your-feature`
 6. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 💡 Support
+## Support
 
 For questions, issues, or feature requests:
 - Open an issue on GitHub
