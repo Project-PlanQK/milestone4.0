@@ -1,5 +1,7 @@
 # PlanQK Assistant Chatbot - Milestone 4.1
 
+### !IMPORTANT! This is the chatbot you can find at https://platform.planqk.de/use-cases/67d0b819-65e5-4856-98c4-30a997bf60d3/demo. (You need an account with Planqk and authorization for the use case. For further information, please contact the creators of the repository.)
+
 An intelligent conversational AI assistant specifically designed for the PlanQK platform. This chatbot helps users navigate quantum computing, AI/ML solutions, and optimization services by providing context-aware, personalized responses powered by Azure OpenAI and Retrieval Augmented Generation (RAG).
 
 ## Overview
