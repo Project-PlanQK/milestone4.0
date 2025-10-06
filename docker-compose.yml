@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  planqk-assistant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: planqk-chatbot
+    image: planqk-assistant:latest
+    ports:
+      - "8080:8080"
+    environment:
+      # Required Azure OpenAI Configuration
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - ENDPOINT_URL=${ENDPOINT_URL}
+      
+      # Required Azure Search Configuration
+      - SEARCH_ENDPOINT=${SEARCH_ENDPOINT}
+      - SEARCH_KEY=${SEARCH_KEY}
+      
+      # Optional Application Insights (for monitoring)
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+      
+      # Optional Port Configuration (default: 8080)
+      - PORT=${PORT:-8080}
+      
+    volumes:
+      # Persist chat history outside container
+      - ./chat_histories:/app/chat_histories
+      
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
