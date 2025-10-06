@@ -1,5 +1,5 @@
 # PlanQK Assistant Chatbot
-### IMPORTANT! This is the chatbot you can find at https://platform.planqk.de/use-cases/67d0b819-65e5-4856-98c4-30a997bf60d3/demo. (You need an account with Plankq and authorization for the use case. For further information, please contact the creators of the repository.)
+### !IMPORTANT! This is the chatbot you can find at https://platform.planqk.de/use-cases/67d0b819-65e5-4856-98c4-30a997bf60d3/demo. (You need an account with Planqk and authorization for the use case. For further information, please contact the creators of the repository.)
 ### If you are looking for the readme for the latest version, please open the milestone4.1 subfolder.
 
 A conversational AI assistant built with Gradio that helps users navigate the PlanQK platform, powered by Azure OpenAI services and featuring automatic user profiling for personalized responses.
